@@ -1,0 +1,137 @@
+@import "tailwindcss";
+
+/* ─── Design Tokens ─── */
+:root {
+  --color-primary:        #0066cc;
+  --color-primary-focus:  #0071e3;
+  --color-primary-dark:   #2997ff;
+  --color-ink:            #1d1d1f;
+  --color-muted-48:       #86868b;
+  --color-muted-60:       #6e6e73;
+  --color-muted-80:       #aeaeb2;
+  --color-on-dark:        #ffffff;
+  --color-divider:        #e0e0e0;
+  --color-canvas:         #ffffff;
+  --color-parchment:      #f5f5f7;
+  --color-dark-tile:      #1d1d1f;
+  --shadow-product:       3px 5px 30px 0 rgba(0,0,0,0.22);
+  --font-display:         'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-text:            'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* ─── Base ─── */
+html {
+  scroll-behavior: smooth;
+  font-size: 16px;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-text);
+  color: var(--color-ink);
+  background: var(--color-canvas);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+::selection {
+  background: rgba(0, 102, 204, 0.18);
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-primary-focus);
+  outline-offset: 2px;
+}
+
+/* ─── Typewriter cursor ─── */
+@keyframes cursor-blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+
+.cursor-blink {
+  display: inline-block;
+  width: 3px;
+  height: 0.82em;
+  background: currentColor;
+  margin-left: 3px;
+  vertical-align: text-bottom;
+  border-radius: 1px;
+  animation: cursor-blink 1s step-end infinite;
+}
+
+/* ─── Green availability pulse ─── */
+@keyframes ping-dot {
+  75%, 100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+
+.ping-dot {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: #34c759;
+  animation: ping-dot 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+/* ─── Hero gradient border (rotating) ─── */
+@keyframes spin-border {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* ─── Section reveal ─── */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes rc-fade-up {
+    from { transform: translateY(20px); }
+    to   { transform: none; }
+  }
+}
+
+/* ─── Rail nav hover ─── */
+.rail-btn:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+/* ─── Image placeholder ─── */
+.img-placeholder {
+  background: #f0f0f2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #c7c7ca;
+}
+
+/* ─── Logo carousel marquee ─── */
+@keyframes marquee-left {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+.logos-marquee-track {
+  display: flex;
+  align-items: center;
+  animation: marquee-left 32s linear infinite;
+  width: max-content;
+}
+
+.logos-marquee-track:hover {
+  animation-play-state: paused;
+}
+
+/* ─── Scrollbar styling ─── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #d1d1d6; border-radius: 9999px; }
+::-webkit-scrollbar-thumb:hover { background: #aeaeb2; }
