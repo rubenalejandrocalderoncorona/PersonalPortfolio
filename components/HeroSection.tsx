@@ -278,14 +278,8 @@ export default function HeroSection() {
           style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', justifyContent: 'center' }}
         >
           <motion.a
-            href="#contact"
+            href="/contact"
             whileTap={{ scale: 0.95 }}
-            onClick={(e) => {
-              e.preventDefault()
-              const el = document.querySelector('section[data-section="contact"]')
-              if (el)
-                window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 8, behavior: 'smooth' })
-            }}
             style={{
               display: 'inline-flex',
               alignItems: 'center',
@@ -297,6 +291,7 @@ export default function HeroSection() {
               fontSize: '17px',
               fontWeight: 400,
               cursor: 'pointer',
+              textDecoration: 'none',
             }}
           >
             Get in touch

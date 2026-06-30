@@ -72,7 +72,7 @@ export default function ContactSection() {
             }}
           >
             <motion.a
-              href="mailto:rubenalejandrocalderoncorona@gmail.com"
+              href="/contact"
               whileTap={{ scale: 0.95 }}
               style={{
                 display: 'inline-flex',

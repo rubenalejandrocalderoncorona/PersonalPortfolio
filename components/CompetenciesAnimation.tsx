@@ -15,14 +15,14 @@ const pg = (ms: number, s: number, e: number) => eio(clamp((ms-s)/(e-s), 0, 1))
 type V2 = { x: number; y: number }
 
 /* ─── Icon positions ─── */
-const SZ = 68   // logo icon diameter
+const SZ = 82   // logo icon diameter (bigger — new icons need more room to read clearly)
 const R  = SZ / 2
 
 const POS = {
-  mon:   { x: 72,  y: 150 },   // AIMonitoring
-  obs:   { x: 225, y: 150 },   // AIObsOperations
-  sol:   { x: 378, y: 150 },   // AISolution
-  terra: { x: 531, y: 150 },   // TerraformAISolutions
+  aiops: { x: 72,  y: 150 },   // AI-Powered Operations
+  rag:   { x: 225, y: 150 },   // Agentic RAG Workflows
+  iac:   { x: 378, y: 150 },   // Infrastructure as Code
+  mlops: { x: 531, y: 150 },   // Observability & MLOps
   tool:  { x: 672, y: 96  },   // AITool (upper)
   dev:   { x: 672, y: 204 },   // DeveloperIcon (lower)
   plus:  { x: 672, y: 150 },   // "+" midpoint between tool and dev
@@ -42,23 +42,23 @@ function edgePt(from: V2, to: V2): { s: V2; e: V2 } {
 }
 
 const ARROWS: Array<{ from: V2; to: V2; color: string; startMs: number }> = [
-  { from: POS.mon,   to: POS.obs,   color: '#f59e0b', startMs: 900  },
-  { from: POS.obs,   to: POS.sol,   color: '#3b82f6', startMs: 1700 },
-  { from: POS.sol,   to: POS.terra, color: '#ef4444', startMs: 2500 },
-  { from: POS.terra, to: POS.tool,  color: '#8b5cf6', startMs: 3300 },
-  { from: POS.terra, to: POS.dev,   color: '#6366f1', startMs: 3500 },
+  { from: POS.aiops, to: POS.rag,   color: '#f59e0b', startMs: 900  },
+  { from: POS.rag,   to: POS.iac,   color: '#3b82f6', startMs: 1700 },
+  { from: POS.iac,   to: POS.mlops, color: '#ef4444', startMs: 2500 },
+  { from: POS.mlops, to: POS.tool,  color: '#8b5cf6', startMs: 3300 },
+  { from: POS.mlops, to: POS.dev,   color: '#6366f1', startMs: 3500 },
   { from: POS.plus,  to: POS.corp,  color: '#ffd700', startMs: 4600 },
 ]
 const ARROW_DUR = 680  // ms to draw each arrow
 
 const ICONS: Array<{ key: string; src: string; pos: V2 }> = [
-  { key: 'mon',   src: '/images/widoanimation/AIMonitoring.svg',       pos: POS.mon   },
-  { key: 'obs',   src: '/images/widoanimation/AIObsOperations.svg',    pos: POS.obs   },
-  { key: 'sol',   src: '/images/widoanimation/AISolution.svg',         pos: POS.sol   },
-  { key: 'terra', src: '/images/widoanimation/TerraformAISolutions.svg', pos: POS.terra },
-  { key: 'tool',  src: '/images/widoanimation/AITool.svg',             pos: POS.tool  },
-  { key: 'dev',   src: '/images/widoanimation/DeveloperIcon.svg',      pos: POS.dev   },
-  { key: 'corp',  src: '/images/widoanimation/Corporate.svg',          pos: POS.corp  },
+  { key: 'aiops', src: '/images/widoanimation/AIOperations.svg', pos: POS.aiops },
+  { key: 'rag',   src: '/images/widoanimation/AgentRAG.svg',     pos: POS.rag   },
+  { key: 'iac',   src: '/images/widoanimation/IaC.svg',          pos: POS.iac   },
+  { key: 'mlops', src: '/images/widoanimation/MLOps.svg',        pos: POS.mlops },
+  { key: 'tool',  src: '/images/widoanimation/AITool.svg',       pos: POS.tool  },
+  { key: 'dev',   src: '/images/widoanimation/DeveloperIcon.svg', pos: POS.dev  },
+  { key: 'corp',  src: '/images/widoanimation/Corporate.svg',    pos: POS.corp  },
 ]
 
 const PLUS_START  = 4200   // "+" appears
@@ -131,11 +131,17 @@ export default function CompetenciesAnimation() {
       ctx.restore()
     }
 
-    /* ── Draw icon ── */
+    /* ── Draw icon (preserves each SVG's natural aspect ratio) ── */
     function drawIcon(key: string, pos: V2, alpha: number, scale = 1) {
       const img = imgs[key]
       if (!img || alpha <= 0) return
-      const s = SZ * scale
+      const box = SZ * scale
+      // Fit image within box×box without distortion
+      const ratio = img.naturalWidth && img.naturalHeight ? img.naturalWidth / img.naturalHeight : 1
+      let dw = box, dh = box
+      if (ratio > 1) dh = box / ratio
+      else dw = box * ratio
+
       ctx.save()
       ctx.globalAlpha = alpha
       // Circle background
@@ -145,9 +151,9 @@ export default function CompetenciesAnimation() {
       ctx.beginPath()
       ctx.arc(pos.x, pos.y, R + 2, 0, Math.PI * 2)
       ctx.fill()
-      // Icon image
+      // Icon image, centered, aspect-correct
       ctx.shadowBlur = 0
-      ctx.drawImage(img, pos.x - s/2, pos.y - s/2, s, s)
+      ctx.drawImage(img, pos.x - dw/2, pos.y - dh/2, dw, dh)
       ctx.restore()
     }
 

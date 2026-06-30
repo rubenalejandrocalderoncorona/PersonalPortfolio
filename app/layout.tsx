@@ -15,8 +15,8 @@ export const metadata: Metadata = {
     'MLOps & Applied AI Engineer specializing in enterprise AI execution, agentic workflows, and production-grade ML infrastructure across OCI, GCP, and Azure.',
   keywords: ['AI Cloud Engineer', 'MLOps', 'OCI', 'GCP', 'Kubernetes', 'Terraform', 'LangGraph'],
   icons: {
-    icon: [{ url: '/RCLogo2.svg', type: 'image/svg+xml' }],
-    apple: '/RCLogo2.svg',
+    icon: [{ url: '/RCLogo3.png', type: 'image/png' }],
+    apple: '/RCLogo3.png',
   },
 }
 
