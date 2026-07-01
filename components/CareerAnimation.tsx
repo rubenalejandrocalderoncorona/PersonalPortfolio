@@ -186,10 +186,13 @@ export default function CareerAnimation() {
           {activeNode && (
             <motion.div
               key={activeNode.id}
-              initial={{ opacity: 0, scale: 0.94 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.94 }}
-              transition={{ duration: 0.15, ease: 'easeOut' }}
+              // Only animate opacity — if we also animate scale/y/x, Framer Motion
+              // writes its own transform which overwrites the CSS translate that
+              // controls the tooltip's position, causing it to appear in the wrong spot.
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.12, ease: 'easeOut' }}
               style={{
                 position: 'absolute',
                 // Horizontal: centred on the node
