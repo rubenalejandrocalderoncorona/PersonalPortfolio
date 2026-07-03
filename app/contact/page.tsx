@@ -19,11 +19,11 @@ export default function ContactPage() {
       }}
     >
       {/* Back navigation */}
-      <div style={{ padding: '32px 48px 0', maxWidth: '760px', margin: '0 auto' }}>
+      <div className="rsp-contact-back" style={{ padding: '32px 48px 0', maxWidth: '760px', margin: '0 auto' }}>
         <BackButton />
       </div>
 
-      <div style={{ maxWidth: '600px', margin: '0 auto', padding: '40px 48px 120px' }}>
+      <div className="rsp-contact-form-wrap" style={{ maxWidth: '600px', margin: '0 auto', padding: '40px 48px 120px' }}>
         <div
           style={{
             fontSize: '13px',

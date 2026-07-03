@@ -1,19 +1,21 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { certs } from '@/lib/data'
 import ScrollReveal from './ScrollReveal'
+import { useIsMobile } from '@/lib/useIsMobile'
 
-const VISIBLE = 3
 const GAP = 20
 const AUTO_MS = 4000
 
 export default function CertificationsSection() {
+  const isMobile = useIsMobile()
+  const VISIBLE = isMobile ? 1 : 3
   const [idx, setIdx] = useState(0)
   const [slideAmt, setSlideAmt] = useState(0)
   const wrapRef = useRef<HTMLDivElement>(null)
-  const maxIdx = certs.length - VISIBLE // 4
+  const maxIdx = certs.length - VISIBLE
 
   // Measure once + on resize
   useEffect(() => {
@@ -33,6 +35,11 @@ export default function CertificationsSection() {
   const prev = () => goTo(idx - 1)
   const next = () => goTo(idx + 1)
 
+  // Clamp idx when switching between mobile (1 visible) and desktop (3 visible)
+  useEffect(() => {
+    if (idx > maxIdx) setIdx(maxIdx)
+  }, [maxIdx, idx])
+
   // Auto-advance
   useEffect(() => {
     const t = setInterval(() => setIdx((i) => (i >= maxIdx ? 0 : i + 1)), AUTO_MS)
@@ -44,14 +51,14 @@ export default function CertificationsSection() {
       data-section="certifications"
       style={{ background: '#ffffff' }}
     >
-      <div style={{ maxWidth: '1180px', margin: '0 auto', padding: '96px 48px' }}>
+      <div style={{ maxWidth: '1180px', margin: '0 auto', padding: isMobile ? '56px 20px' : '96px 48px' }}>
 
         {/* Header */}
         <ScrollReveal style={{ marginBottom: '48px', maxWidth: '620px' }}>
           <div style={{ fontSize: '13px', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#0066cc', marginBottom: '14px' }}>
             Credentials
           </div>
-          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '44px', fontWeight: 600, lineHeight: 1.06, letterSpacing: '-0.025em', margin: 0, color: '#1d1d1f' }}>
+          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: isMobile ? '30px' : '44px', fontWeight: 600, lineHeight: 1.06, letterSpacing: '-0.025em', margin: 0, color: '#1d1d1f' }}>
             Certifications.
           </h2>
         </ScrollReveal>
@@ -133,7 +140,7 @@ export default function CertificationsSection() {
             disabled={idx === 0}
             style={{
               position: 'absolute',
-              left: '-20px',
+              left: isMobile ? '4px' : '-20px',
               top: '50%',
               transform: 'translateY(-50%)',
               width: '40px',
@@ -161,7 +168,7 @@ export default function CertificationsSection() {
             disabled={idx >= maxIdx}
             style={{
               position: 'absolute',
-              right: '-20px',
+              right: isMobile ? '4px' : '-20px',
               top: '50%',
               transform: 'translateY(-50%)',
               width: '40px',

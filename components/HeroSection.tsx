@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
+import { useIsMobile } from '@/lib/useIsMobile'
 import TypewriterText from './TypewriterText'
 import GlitchName from './GlitchName'
 
@@ -18,6 +19,7 @@ const fadeUp = (delay = 0) => ({
 
 export default function HeroSection() {
   const [showDesc, setShowDesc] = useState(false)
+  const isMobile = useIsMobile()
 
   return (
     <section
@@ -76,7 +78,7 @@ export default function HeroSection() {
           width: '100%',
           maxWidth: '800px',
           margin: '0 auto',
-          padding: '80px 32px 80px',
+          padding: isMobile ? '80px 16px 60px' : '80px 32px 80px',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',

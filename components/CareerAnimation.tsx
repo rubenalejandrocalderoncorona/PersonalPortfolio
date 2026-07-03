@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react'
 import { motion, useInView, AnimatePresence } from 'framer-motion'
+import { useIsMobile } from '@/lib/useIsMobile'
 
 const PATH =
   'M 0,276 C 120,270 240,255 360,225 C 480,195 580,145 680,92 C 760,52 840,22 1000,10'
@@ -62,8 +63,13 @@ export default function CareerAnimation() {
   const wrapRef = useRef<HTMLDivElement>(null)
   const isInView = useInView(wrapRef, { once: true, margin: '-80px' })
   const [hovered, setHovered] = useState<number | null>(null)
+  const isMobile = useIsMobile()
 
   const activeNode = NODES.find(n => n.id === hovered) ?? null
+
+  const handleNodeTap = (id: number) => {
+    setHovered(prev => (prev === id ? null : id))
+  }
 
   return (
     <div ref={wrapRef} style={{ position: 'relative', width: '100%', marginBottom: '48px' }}>
@@ -115,9 +121,10 @@ export default function CareerAnimation() {
               initial={{ scale: 0, opacity: 0 }}
               animate={isInView ? { scale: 1, opacity: 1 } : {}}
               transition={{ type: 'spring', stiffness: 320, damping: 22, delay: node.delay }}
-              onHoverStart={() => setHovered(node.id)}
-              onHoverEnd={() => setHovered(null)}
-              whileHover={{ scale: 1.15 }}
+              onHoverStart={isMobile ? undefined : () => setHovered(node.id)}
+              onHoverEnd={isMobile ? undefined : () => setHovered(null)}
+              onClick={isMobile ? () => handleNodeTap(node.id) : undefined}
+              whileHover={isMobile ? undefined : { scale: 1.15 }}
               style={{
                 width: `${NODE_R * 2}px`,
                 height: `${NODE_R * 2}px`,

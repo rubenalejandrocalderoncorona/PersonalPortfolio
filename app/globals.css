@@ -135,3 +135,39 @@ a {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #d1d1d6; border-radius: 9999px; }
 ::-webkit-scrollbar-thumb:hover { background: #aeaeb2; }
+
+/* ─── Responsive: ≤ 768 px ──────────────────────────────────── */
+@media (max-width: 768px) {
+  /* Main content shifts right on desktop; on mobile it takes full width */
+  .page-main { margin-left: 0 !important; padding-bottom: 60px; }
+
+  /* Section inner padding — override the fixed 48px horizontal */
+  .rsp-section-pad { padding: 56px 20px !important; }
+
+  /* Section headings — scale down from 44px */
+  .rsp-h2 { font-size: clamp(26px, 7vw, 34px) !important; }
+
+  /* 2-column grids collapse to 1 */
+  .rsp-grid-1col { grid-template-columns: 1fr !important; gap: 32px !important; }
+
+  /* Competencies left column: remove sticky so it flows normally */
+  .rsp-unstick { position: static !important; }
+
+  /* Featured project card image area */
+  .rsp-feat-img  { height: 220px !important; }
+  .rsp-feat-body { padding: 20px 20px 24px !important; }
+
+  /* Contact section */
+  .rsp-contact-pad { padding: 56px 24px !important; }
+
+  /* Contact form: name + email side-by-side → stacked */
+  .rsp-form-row { grid-template-columns: 1fr !important; }
+
+  /* Cert carousel arrows: pull them inside the track boundary */
+  .rsp-cert-l { left: 4px !important; }
+  .rsp-cert-r { right: 4px !important; }
+
+  /* Contact page */
+  .rsp-contact-back  { padding: 20px 20px 0 !important; }
+  .rsp-contact-form-wrap { padding: 24px 20px 80px !important; }
+}

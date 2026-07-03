@@ -12,7 +12,7 @@ export default function Page() {
   return (
     <>
       <Navigation />
-      <main style={{ marginLeft: '80px' }}>
+      <main className="page-main" style={{ marginLeft: '80px' }}>
         <HeroSection />
         <PlatformsStrip />
         <CompetenciesSection />

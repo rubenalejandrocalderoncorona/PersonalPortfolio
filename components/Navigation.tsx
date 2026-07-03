@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
+import { useIsMobile } from '@/lib/useIsMobile'
 
 const navItems = [
   {
@@ -89,6 +90,7 @@ const navItems = [
 
 export default function Navigation() {
   const [active, setActive] = useState('hero')
+  const isMobile = useIsMobile()
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -117,6 +119,86 @@ export default function Navigation() {
     }
   }
 
+  /* ── Mobile: bottom tab bar ── */
+  if (isMobile) {
+    return (
+      <nav
+        aria-label="Section navigation"
+        style={{
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: '60px',
+          background: 'rgba(255,255,255,0.94)',
+          backdropFilter: 'saturate(180%) blur(20px)',
+          WebkitBackdropFilter: 'saturate(180%) blur(20px)',
+          borderTop: '1px solid #e0e0e0',
+          display: 'flex',
+          alignItems: 'stretch',
+          zIndex: 50,
+        }}
+      >
+        {navItems.map((item) => {
+          const isActive = active === item.id
+          return (
+            <button
+              key={item.id}
+              title={item.label}
+              aria-label={item.label}
+              onClick={() => scrollTo(item.id)}
+              style={{
+                flex: 1,
+                border: 'none',
+                background: 'none',
+                color: isActive ? '#0066cc' : '#86868b',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '3px',
+                cursor: 'pointer',
+                padding: '6px 2px',
+                position: 'relative',
+                transition: 'color 0.2s ease',
+                minWidth: 0,
+              }}
+            >
+              {/* Active top-edge indicator */}
+              {isActive && (
+                <span
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: '18%',
+                    right: '18%',
+                    height: '2px',
+                    borderRadius: '9999px',
+                    background: '#0066cc',
+                  }}
+                />
+              )}
+              {item.icon}
+              <span
+                style={{
+                  fontSize: '8px',
+                  fontWeight: 600,
+                  letterSpacing: '0.04em',
+                  textTransform: 'uppercase',
+                  lineHeight: 1,
+                  fontFamily: 'var(--font-text)',
+                }}
+              >
+                {item.shortLabel}
+              </span>
+            </button>
+          )
+        })}
+      </nav>
+    )
+  }
+
+  /* ── Desktop: left sidebar ── */
   return (
     <nav
       aria-label="Section navigation"

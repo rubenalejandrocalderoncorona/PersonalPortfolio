@@ -4,8 +4,11 @@ import { motion } from 'framer-motion'
 import { competencies } from '@/lib/data'
 import ScrollReveal from './ScrollReveal'
 import CompetenciesAnimation from './CompetenciesAnimation'
+import { useIsMobile } from '@/lib/useIsMobile'
 
 export default function CompetenciesSection() {
+  const isMobile = useIsMobile()
+
   return (
     <section
       data-section="competencies"
@@ -15,15 +18,15 @@ export default function CompetenciesSection() {
         style={{
           maxWidth: '1100px',
           margin: '0 auto',
-          padding: '96px 48px',
+          padding: isMobile ? '56px 20px' : '96px 48px',
           display: 'grid',
-          gridTemplateColumns: '0.85fr 1.15fr',
-          gap: '64px',
+          gridTemplateColumns: isMobile ? '1fr' : '0.85fr 1.15fr',
+          gap: isMobile ? '32px' : '64px',
           alignItems: 'start',
         }}
       >
-        {/* Sticky left column */}
-        <ScrollReveal style={{ position: 'sticky', top: '64px' }}>
+        {/* Left column — sticky on desktop, static on mobile */}
+        <ScrollReveal style={isMobile ? undefined : { position: 'sticky', top: '64px' }}>
           <div
             style={{
               fontSize: '13px',
@@ -39,7 +42,7 @@ export default function CompetenciesSection() {
           <h2
             style={{
               fontFamily: 'var(--font-display)',
-              fontSize: '44px',
+              fontSize: isMobile ? '30px' : '44px',
               fontWeight: 600,
               lineHeight: 1.06,
               letterSpacing: '-0.025em',
@@ -60,7 +63,7 @@ export default function CompetenciesSection() {
             I bridge cloud infrastructure engineering with applied AI — automating incident response,
             reducing manual toil, and improving system reliability at enterprise scale.
           </p>
-          <CompetenciesAnimation />
+          {!isMobile && <CompetenciesAnimation />}
         </ScrollReveal>
 
         {/* Right list */}
