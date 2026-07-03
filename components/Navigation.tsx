@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
-import { useIsMobile } from '@/lib/useIsMobile'
+import { useRouter } from 'next/navigation'
 
 const navItems = [
   {
@@ -90,7 +90,7 @@ const navItems = [
 
 export default function Navigation() {
   const [active, setActive] = useState('hero')
-  const isMobile = useIsMobile()
+  const router = useRouter()
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -103,7 +103,6 @@ export default function Navigation() {
       },
       { rootMargin: '-45% 0px -50% 0px', threshold: 0 }
     )
-
     const sectionEls = document.querySelectorAll('section[data-section]')
     sectionEls.forEach((el) => observer.observe(el))
     return () => observer.disconnect()
@@ -112,17 +111,88 @@ export default function Navigation() {
   const scrollTo = (id: string) => {
     const el = document.querySelector(`section[data-section="${id}"]`)
     if (el) {
-      window.scrollTo({
-        top: el.getBoundingClientRect().top + window.scrollY - 8,
-        behavior: 'smooth',
-      })
+      window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 8, behavior: 'smooth' })
+    } else {
+      // Not on the home page (e.g. /projects/[id]) — go home
+      router.push('/')
     }
   }
 
-  /* ── Mobile: bottom tab bar ── */
-  if (isMobile) {
-    return (
+  return (
+    <>
+      {/* ── Desktop: fixed left sidebar — hidden on mobile via CSS ── */}
       <nav
+        className="nav-desktop"
+        aria-label="Section navigation"
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          bottom: 0,
+          width: '80px',
+          background: 'rgba(255,255,255,0.88)',
+          backdropFilter: 'saturate(180%) blur(20px)',
+          WebkitBackdropFilter: 'saturate(180%) blur(20px)',
+          borderRight: '1px solid #e0e0e0',
+          flexDirection: 'column',
+          alignItems: 'center',
+          zIndex: 50,
+        }}
+      >
+        <motion.div
+          whileHover={{ scale: 1.06 }}
+          style={{ position: 'absolute', top: '18px', width: '38px', height: '38px', borderRadius: '50%', overflow: 'hidden', cursor: 'default', flexShrink: 0 }}
+        >
+          <Image src="/images/profileimage/RCIcon.png" alt="RC" width={38} height={38} priority
+            style={{ objectFit: 'cover', borderRadius: '50%', width: '38px', height: '38px' }} />
+        </motion.div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', alignItems: 'center', justifyContent: 'center', flex: 1 }}>
+          {navItems.map((item) => {
+            const isActive = active === item.id
+            return (
+              <motion.button
+                key={item.id}
+                title={item.label}
+                aria-label={item.label}
+                onClick={() => scrollTo(item.id)}
+                whileHover={{ background: 'rgba(0,0,0,0.05)' }}
+                whileTap={{ scale: 0.92 }}
+                style={{
+                  position: 'relative',
+                  width: '62px',
+                  border: 'none',
+                  background: 'none',
+                  color: isActive ? '#0066cc' : '#86868b',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '4px',
+                  borderRadius: '12px',
+                  transition: 'color 0.2s ease',
+                  padding: '10px 4px 8px',
+                }}
+              >
+                <motion.span
+                  animate={{ opacity: isActive ? 1 : 0 }}
+                  transition={{ duration: 0.2 }}
+                  style={{ position: 'absolute', left: '-9px', top: '50%', transform: 'translateY(-50%)', width: '3px', height: '22px', borderRadius: '9999px', background: '#0066cc' }}
+                />
+                {item.icon}
+                <span style={{ fontSize: '9px', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase', lineHeight: 1, fontFamily: 'var(--font-text)' }}>
+                  {item.shortLabel}
+                </span>
+              </motion.button>
+            )
+          })}
+        </div>
+      </nav>
+
+      {/* ── Mobile: fixed bottom tab bar — hidden on desktop via CSS ── */}
+      <nav
+        className="nav-mobile"
         aria-label="Section navigation"
         style={{
           position: 'fixed',
@@ -134,7 +204,6 @@ export default function Navigation() {
           backdropFilter: 'saturate(180%) blur(20px)',
           WebkitBackdropFilter: 'saturate(180%) blur(20px)',
           borderTop: '1px solid #e0e0e0',
-          display: 'flex',
           alignItems: 'stretch',
           zIndex: 50,
         }}
@@ -164,154 +233,17 @@ export default function Navigation() {
                 minWidth: 0,
               }}
             >
-              {/* Active top-edge indicator */}
               {isActive && (
-                <span
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: '18%',
-                    right: '18%',
-                    height: '2px',
-                    borderRadius: '9999px',
-                    background: '#0066cc',
-                  }}
-                />
+                <span style={{ position: 'absolute', top: 0, left: '18%', right: '18%', height: '2px', borderRadius: '9999px', background: '#0066cc' }} />
               )}
               {item.icon}
-              <span
-                style={{
-                  fontSize: '8px',
-                  fontWeight: 600,
-                  letterSpacing: '0.04em',
-                  textTransform: 'uppercase',
-                  lineHeight: 1,
-                  fontFamily: 'var(--font-text)',
-                }}
-              >
+              <span style={{ fontSize: '8px', fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase', lineHeight: 1, fontFamily: 'var(--font-text)' }}>
                 {item.shortLabel}
               </span>
             </button>
           )
         })}
       </nav>
-    )
-  }
-
-  /* ── Desktop: left sidebar ── */
-  return (
-    <nav
-      aria-label="Section navigation"
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        bottom: 0,
-        width: '80px',
-        background: 'rgba(255,255,255,0.88)',
-        backdropFilter: 'saturate(180%) blur(20px)',
-        WebkitBackdropFilter: 'saturate(180%) blur(20px)',
-        borderRight: '1px solid #e0e0e0',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        zIndex: 50,
-      }}
-    >
-      {/* Logo — pinned to top */}
-      <motion.div
-        whileHover={{ scale: 1.06 }}
-        style={{
-          position: 'absolute',
-          top: '18px',
-          width: '38px',
-          height: '38px',
-          borderRadius: '50%',
-          overflow: 'hidden',
-          cursor: 'default',
-          flexShrink: 0,
-        }}
-      >
-        <Image
-          src="/images/profileimage/RCIcon.png"
-          alt="RC"
-          width={38}
-          height={38}
-          priority
-          style={{ objectFit: 'cover', borderRadius: '50%', width: '38px', height: '38px' }}
-        />
-      </motion.div>
-
-      {/* Nav buttons — centered in the FULL sidebar height */}
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '2px',
-          alignItems: 'center',
-          justifyContent: 'center',
-          flex: 1,
-        }}
-      >
-        {navItems.map((item) => {
-          const isActive = active === item.id
-          return (
-            <motion.button
-              key={item.id}
-              title={item.label}
-              aria-label={item.label}
-              onClick={() => scrollTo(item.id)}
-              whileHover={{ background: 'rgba(0,0,0,0.05)' }}
-              whileTap={{ scale: 0.92 }}
-              style={{
-                position: 'relative',
-                width: '62px',
-                border: 'none',
-                background: 'none',
-                color: isActive ? '#0066cc' : '#86868b',
-                cursor: 'pointer',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '4px',
-                borderRadius: '12px',
-                transition: 'color 0.2s ease',
-                padding: '10px 4px 8px',
-              }}
-            >
-              {/* Active left-edge indicator */}
-              <motion.span
-                animate={{ opacity: isActive ? 1 : 0 }}
-                transition={{ duration: 0.2 }}
-                style={{
-                  position: 'absolute',
-                  left: '-9px',
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  width: '3px',
-                  height: '22px',
-                  borderRadius: '9999px',
-                  background: '#0066cc',
-                }}
-              />
-              {item.icon}
-              <span
-                style={{
-                  fontSize: '9px',
-                  fontWeight: 600,
-                  letterSpacing: '0.05em',
-                  textTransform: 'uppercase',
-                  lineHeight: 1,
-                  fontFamily: 'var(--font-text)',
-                }}
-              >
-                {item.shortLabel}
-              </span>
-            </motion.button>
-          )
-        })}
-      </div>
-    </nav>
+    </>
   )
 }

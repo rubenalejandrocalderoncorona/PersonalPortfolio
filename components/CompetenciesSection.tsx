@@ -14,19 +14,22 @@ export default function CompetenciesSection() {
       data-section="competencies"
       style={{ background: '#f5f5f7' }}
     >
+      {/* CSS class rsp-section-pad overrides padding on mobile;
+          rsp-grid-1col overrides grid-template-columns on mobile */}
       <div
+        className="rsp-section-pad rsp-grid-1col"
         style={{
           maxWidth: '1100px',
           margin: '0 auto',
-          padding: isMobile ? '56px 20px' : '96px 48px',
+          padding: '96px 48px',
           display: 'grid',
-          gridTemplateColumns: isMobile ? '1fr' : '0.85fr 1.15fr',
-          gap: isMobile ? '32px' : '64px',
+          gridTemplateColumns: '0.85fr 1.15fr',
+          gap: '64px',
           alignItems: 'start',
         }}
       >
-        {/* Left column — sticky on desktop, static on mobile */}
-        <ScrollReveal style={isMobile ? undefined : { position: 'sticky', top: '64px' }}>
+        {/* Left column — sticky on desktop (rsp-unstick overrides to static on mobile) */}
+        <ScrollReveal className="rsp-unstick" style={{ position: 'sticky', top: '64px' }}>
           <div
             style={{
               fontSize: '13px',
@@ -40,9 +43,10 @@ export default function CompetenciesSection() {
             Core competencies
           </div>
           <h2
+            className="rsp-h2"
             style={{
               fontFamily: 'var(--font-display)',
-              fontSize: isMobile ? '30px' : '44px',
+              fontSize: '44px',
               fontWeight: 600,
               lineHeight: 1.06,
               letterSpacing: '-0.025em',
@@ -63,6 +67,7 @@ export default function CompetenciesSection() {
             I bridge cloud infrastructure engineering with applied AI — automating incident response,
             reducing manual toil, and improving system reliability at enterprise scale.
           </p>
+          {/* Canvas animation hidden on mobile (too wide to scale gracefully) */}
           {!isMobile && <CompetenciesAnimation />}
         </ScrollReveal>
 

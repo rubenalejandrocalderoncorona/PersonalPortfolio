@@ -6,8 +6,6 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { projects } from '@/lib/data'
 import ScrollReveal from './ScrollReveal'
-import { useIsMobile } from '@/lib/useIsMobile'
-
 /* First 2 projects are the featured AI cards; the rest go in the grid */
 const FEATURED = projects.slice(0, 2)
 const REST     = projects.slice(2)
@@ -40,7 +38,6 @@ function Chip({ label }: { label: string }) {
 function FeaturedCarousel() {
   const [idx, setIdx] = useState(0)
   const project = FEATURED[idx]
-  const isMobile = useIsMobile()
 
   return (
     <div style={{ marginBottom: '56px' }}>
@@ -55,7 +52,7 @@ function FeaturedCarousel() {
             transition={{ duration: 0.4, ease: [0.28, 0.11, 0.32, 1] }}
           >
             {/* ── Image ── */}
-            <div style={{ position: 'relative', height: isMobile ? '220px' : '360px', background: project.gradient ?? '#1d1d1f' }}>
+            <div className="rsp-feat-img" style={{ position: 'relative', height: '360px', background: project.gradient ?? '#1d1d1f' }}>
               {project.image ? (
                 <Image
                   src={project.image}
@@ -91,7 +88,7 @@ function FeaturedCarousel() {
             </div>
 
             {/* ── Content ── */}
-            <div style={{ padding: isMobile ? '20px 20px 24px' : '28px 32px 32px' }}>
+            <div className="rsp-feat-body" style={{ padding: '28px 32px 32px' }}>
               <h3 style={{ fontFamily: 'var(--font-text)', fontSize: '24px', fontWeight: 600, letterSpacing: '-0.02em', margin: '0 0 12px', color: '#1d1d1f' }}>
                 {project.title}
               </h3>
@@ -177,9 +174,8 @@ function FeaturedCarousel() {
    REMAINING PROJECTS GRID — 2 × 2
    ═══════════════════════════════════════════════════════════ */
 function ProjectGrid() {
-  const isMobile = useIsMobile()
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: '24px' }}>
+    <div className="rsp-grid-1col" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '24px' }}>
       {REST.map((project, i) => (
         <motion.div
           key={project.id}
@@ -225,17 +221,16 @@ function ProjectGrid() {
    SECTION
    ═══════════════════════════════════════════════════════════ */
 export default function ProjectsSection() {
-  const isMobile = useIsMobile()
   return (
     <section data-section="projects" style={{ background: '#f5f5f7' }}>
-      <div style={{ maxWidth: '1180px', margin: '0 auto', padding: isMobile ? '56px 20px' : '96px 48px' }}>
+      <div className="rsp-section-pad" style={{ maxWidth: '1180px', margin: '0 auto', padding: '96px 48px' }}>
 
         {/* Header */}
         <ScrollReveal style={{ marginBottom: '40px', maxWidth: '620px' }}>
           <div style={{ fontSize: '13px', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#0066cc', marginBottom: '14px' }}>
             Selected work
           </div>
-          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: isMobile ? '30px' : '44px', fontWeight: 600, lineHeight: 1.06, letterSpacing: '-0.025em', margin: '0 0 16px', color: '#1d1d1f' }}>
+          <h2 className="rsp-h2" style={{ fontFamily: 'var(--font-display)', fontSize: '44px', fontWeight: 600, lineHeight: 1.06, letterSpacing: '-0.025em', margin: '0 0 16px', color: '#1d1d1f' }}>
             Featured projects.
           </h2>
           <p style={{ fontSize: '17px', lineHeight: 1.5, color: '#6e6e73', margin: 0 }}>

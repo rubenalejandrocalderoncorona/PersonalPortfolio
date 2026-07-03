@@ -5,8 +5,6 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { timeline } from '@/lib/data'
 import ScrollReveal from './ScrollReveal'
 import CareerAnimation from './CareerAnimation'
-import { useIsMobile } from '@/lib/useIsMobile'
-
 type Tab = 'path' | 'timeline'
 
 /* Company logos for the timeline — shown as small inline badges */
@@ -25,21 +23,20 @@ function getOrgLogo(org: string) {
 
 export default function ExperienceSection() {
   const [tab, setTab] = useState<Tab>('path')
-  const isMobile = useIsMobile()
 
   return (
     <section
       data-section="experience"
       style={{ background: '#ffffff' }}
     >
-      <div style={{ maxWidth: '920px', margin: '0 auto', padding: isMobile ? '56px 20px' : '96px 48px' }}>
+      <div className="rsp-section-pad" style={{ maxWidth: '920px', margin: '0 auto', padding: '96px 48px' }}>
 
         {/* ── Header ── */}
         <ScrollReveal style={{ marginBottom: '40px' }}>
           <div style={{ fontSize: '13px', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#0066cc', marginBottom: '14px' }}>
             Career journey
           </div>
-          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: isMobile ? '30px' : '44px', fontWeight: 600, lineHeight: 1.06, letterSpacing: '-0.025em', margin: '0 0 32px', color: '#1d1d1f' }}>
+          <h2 className="rsp-h2" style={{ fontFamily: 'var(--font-display)', fontSize: '44px', fontWeight: 600, lineHeight: 1.06, letterSpacing: '-0.025em', margin: '0 0 32px', color: '#1d1d1f' }}>
             From infrastructure to intelligence.
           </h2>
 
@@ -94,7 +91,9 @@ export default function ExperienceSection() {
             >
               {/* Instruction hint */}
               <p style={{ fontSize: '13px', color: '#aeaeb2', marginBottom: '20px', textAlign: 'center' }}>
-                {isMobile ? 'Tap a logo to reveal the role — switch to Full Timeline for details.' : 'Hover over a logo to reveal the role — click through to the Full Timeline for details.'}
+                <span className="hint-desktop">Hover over a logo to reveal the role</span>
+                <span className="hint-mobile" style={{ display: 'none' }}>Tap a logo to reveal the role</span>
+                {' — switch to Full Timeline for details.'}
               </p>
               <CareerAnimation />
             </motion.div>

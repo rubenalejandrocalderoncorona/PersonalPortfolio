@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion'
 import { skillGroups } from '@/lib/data'
 import ScrollReveal from './ScrollReveal'
-import { useIsMobile } from '@/lib/useIsMobile'
+import CLIAnimation from './CLIAnimation'
 
 /* ─── Expertise classification ─────────────────────────────── */
 const EXPERT = new Set([
@@ -32,17 +32,16 @@ const LEVEL_STYLE: Record<string, { color: string; bg: string; border: string }>
 }
 
 export default function SkillsSection() {
-  const isMobile = useIsMobile()
   return (
     <section data-section="skills" style={{ background: '#f5f5f7' }}>
-      <div style={{ maxWidth: '1100px', margin: '0 auto', padding: isMobile ? '56px 20px' : '96px 48px' }}>
+      <div className="rsp-section-pad" style={{ maxWidth: '1100px', margin: '0 auto', padding: '96px 48px' }}>
 
         {/* Header */}
         <ScrollReveal style={{ marginBottom: '32px', maxWidth: '620px' }}>
           <div style={{ fontSize: '13px', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#0066cc', marginBottom: '14px' }}>
             Toolbox
           </div>
-          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: isMobile ? '30px' : '44px', fontWeight: 600, lineHeight: 1.06, letterSpacing: '-0.025em', margin: 0, color: '#1d1d1f' }}>
+          <h2 className="rsp-h2" style={{ fontFamily: 'var(--font-display)', fontSize: '44px', fontWeight: 600, lineHeight: 1.06, letterSpacing: '-0.025em', margin: 0, color: '#1d1d1f' }}>
             The stack I work in.
           </h2>
         </ScrollReveal>
@@ -72,8 +71,11 @@ export default function SkillsSection() {
           </div>
         </ScrollReveal>
 
+        {/* Terminal animation */}
+        <CLIAnimation />
+
         {/* Skills grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: '18px' }}>
+        <div className="rsp-grid-1col" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '18px' }}>
           {skillGroups.map((group, i) => (
             <motion.div
               key={group.title}

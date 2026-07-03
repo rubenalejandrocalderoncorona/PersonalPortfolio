@@ -136,38 +136,63 @@ a {
 ::-webkit-scrollbar-thumb { background: #d1d1d6; border-radius: 9999px; }
 ::-webkit-scrollbar-thumb:hover { background: #aeaeb2; }
 
-/* ─── Responsive: ≤ 768 px ──────────────────────────────────── */
-@media (max-width: 768px) {
-  /* Main content shifts right on desktop; on mobile it takes full width */
-  .page-main { margin-left: 0 !important; padding-bottom: 60px; }
+/* ─── Navigation: both navs always in DOM; CSS decides which is visible ─── */
+/* CSS !important always beats inline style props in React */
+.nav-desktop { display: flex; }
+.nav-mobile  { display: none; }
 
-  /* Section inner padding — override the fixed 48px horizontal */
+/* ─── Responsive: ≤ 768 px ──────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  /* Swap navigation */
+  .nav-desktop { display: none !important; }
+  .nav-mobile  { display: flex !important; }
+
+  /* Main content: no left margin, leave room for bottom nav */
+  .page-main { margin-left: 0 !important; padding-bottom: 64px; }
+
+  /* Section inner padding: 96px 48px → 56px 20px */
   .rsp-section-pad { padding: 56px 20px !important; }
 
-  /* Section headings — scale down from 44px */
-  .rsp-h2 { font-size: clamp(26px, 7vw, 34px) !important; }
+  /* Section h2: 44px → 30px */
+  .rsp-h2 { font-size: 30px !important; }
 
-  /* 2-column grids collapse to 1 */
+  /* 2-column grids → single column */
   .rsp-grid-1col { grid-template-columns: 1fr !important; gap: 32px !important; }
 
-  /* Competencies left column: remove sticky so it flows normally */
+  /* Competencies left column: remove sticky on mobile */
   .rsp-unstick { position: static !important; }
 
-  /* Featured project card image area */
+  /* Featured project card image */
   .rsp-feat-img  { height: 220px !important; }
   .rsp-feat-body { padding: 20px 20px 24px !important; }
 
-  /* Contact section */
+  /* Contact section inner */
   .rsp-contact-pad { padding: 56px 24px !important; }
+  .rsp-contact-h2  { font-size: clamp(24px, 7vw, 32px) !important; }
 
-  /* Contact form: name + email side-by-side → stacked */
+  /* Contact form: name + email stacked */
   .rsp-form-row { grid-template-columns: 1fr !important; }
 
-  /* Cert carousel arrows: pull them inside the track boundary */
+  /* Cert carousel arrows inside track */
   .rsp-cert-l { left: 4px !important; }
   .rsp-cert-r { right: 4px !important; }
 
   /* Contact page */
-  .rsp-contact-back  { padding: 20px 20px 0 !important; }
+  .rsp-contact-back      { padding: 20px 20px 0 !important; }
   .rsp-contact-form-wrap { padding: 24px 20px 80px !important; }
+
+  /* Hero content: tighter side padding */
+  .rsp-hero-content { padding: 80px 16px 56px !important; }
+
+  /* Career animation: smaller circles on mobile */
+  .career-node     { width: 44px !important; height: 44px !important; }
+  .career-node img { width: 28px !important; height: 28px !important; }
+  /* Hide crowded persistent labels; user taps to see tooltip instead */
+  .career-label    { display: none !important; }
+  /* Tooltip wraps text on mobile */
+  .career-tip      { white-space: normal !important; max-width: 150px !important; }
+
+  /* Hint text swap: show mobile version, hide desktop version */
+  .hint-desktop { display: none; }
+  .hint-mobile  { display: inline; }
 }

@@ -2,11 +2,8 @@
 
 import { motion } from 'framer-motion'
 import ScrollReveal from './ScrollReveal'
-import { useIsMobile } from '@/lib/useIsMobile'
-
 export default function ContactSection() {
   const year = new Date().getFullYear()
-  const isMobile = useIsMobile()
 
   return (
     <section
@@ -31,17 +28,19 @@ export default function ContactSection() {
 
       <ScrollReveal style={{ position: 'relative' }}>
         <div
+          className="rsp-contact-pad"
           style={{
             maxWidth: '760px',
             margin: '0 auto',
-            padding: isMobile ? '64px 24px' : '104px 48px',
+            padding: '104px 48px',
             textAlign: 'center',
           }}
         >
           <h2
+            className="rsp-contact-h2"
             style={{
               fontFamily: 'var(--font-display)',
-              fontSize: isMobile ? 'clamp(26px, 7vw, 34px)' : 'clamp(36px, 6vw, 52px)',
+              fontSize: 'clamp(36px, 6vw, 52px)',
               fontWeight: 600,
               lineHeight: 1.05,
               letterSpacing: '-0.03em',

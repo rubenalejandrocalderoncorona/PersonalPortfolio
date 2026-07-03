@@ -2,8 +2,6 @@
 
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useIsMobile } from '@/lib/useIsMobile'
-
 type Status = 'idle' | 'sending' | 'sent' | 'error'
 
 const inputStyle: React.CSSProperties = {
@@ -31,7 +29,6 @@ export default function ContactForm() {
   const [status, setStatus] = useState<Status>('idle')
   const [errorMsg, setErrorMsg] = useState('')
   const [focused, setFocused] = useState<string | null>(null)
-  const isMobile = useIsMobile()
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -123,7 +120,7 @@ export default function ContactForm() {
         <input type="text" id="website" name="website" tabIndex={-1} autoComplete="off" />
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '18px', marginBottom: '18px' }}>
+      <div className="rsp-form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '18px', marginBottom: '18px' }}>
         <div>
           <label style={labelStyle} htmlFor="name">Name *</label>
           <input

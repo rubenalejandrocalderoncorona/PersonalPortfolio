@@ -118,6 +118,7 @@ export default function CareerAnimation() {
           >
             {/* Logo circle */}
             <motion.div
+              className="career-node"
               initial={{ scale: 0, opacity: 0 }}
               animate={isInView ? { scale: 1, opacity: 1 } : {}}
               transition={{ type: 'spring', stiffness: 320, damping: 22, delay: node.delay }}
@@ -145,6 +146,7 @@ export default function CareerAnimation() {
               <img
                 src={node.logo}
                 alt={node.org}
+                className="career-node-img"
                 style={{ width: `${NODE_R * 1.15}px`, height: `${NODE_R * 1.15}px`, objectFit: 'contain' }}
               />
               {node.active && (
@@ -158,6 +160,7 @@ export default function CareerAnimation() {
 
             {/* Persistent position label — always visible below circle */}
             <motion.div
+              className="career-label"
               initial={{ opacity: 0 }}
               animate={isInView ? { opacity: 1 } : {}}
               transition={{ delay: node.delay + 0.4 }}
@@ -193,6 +196,7 @@ export default function CareerAnimation() {
           {activeNode && (
             <motion.div
               key={activeNode.id}
+              className="career-tip"
               // Only animate opacity — if we also animate scale/y/x, Framer Motion
               // writes its own transform which overwrites the CSS translate that
               // controls the tooltip's position, causing it to appear in the wrong spot.

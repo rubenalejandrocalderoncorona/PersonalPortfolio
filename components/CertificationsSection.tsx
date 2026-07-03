@@ -17,19 +17,22 @@ export default function CertificationsSection() {
   const wrapRef = useRef<HTMLDivElement>(null)
   const maxIdx = certs.length - VISIBLE
 
-  // Measure once + on resize
-  useEffect(() => {
-    const measure = () => {
-      if (wrapRef.current) {
-        const w = wrapRef.current.offsetWidth
-        setSlideAmt((w + GAP) / VISIBLE)
-      }
+  const measure = useCallback(() => {
+    if (wrapRef.current) {
+      const w = wrapRef.current.offsetWidth
+      setSlideAmt((w + GAP) / VISIBLE)
     }
+  }, [VISIBLE])
+
+  // Re-measure on resize AND whenever VISIBLE changes (mobile ↔ desktop toggle)
+  useEffect(() => {
     measure()
+    const el = wrapRef.current
+    if (!el) return
     const ro = new ResizeObserver(measure)
-    if (wrapRef.current) ro.observe(wrapRef.current)
+    ro.observe(el)
     return () => ro.disconnect()
-  }, [])
+  }, [measure])
 
   const goTo = useCallback((n: number) => setIdx(Math.max(0, Math.min(maxIdx, n))), [maxIdx])
   const prev = () => goTo(idx - 1)
@@ -51,14 +54,14 @@ export default function CertificationsSection() {
       data-section="certifications"
       style={{ background: '#ffffff' }}
     >
-      <div style={{ maxWidth: '1180px', margin: '0 auto', padding: isMobile ? '56px 20px' : '96px 48px' }}>
+      <div className="rsp-section-pad" style={{ maxWidth: '1180px', margin: '0 auto', padding: '96px 48px' }}>
 
         {/* Header */}
         <ScrollReveal style={{ marginBottom: '48px', maxWidth: '620px' }}>
           <div style={{ fontSize: '13px', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#0066cc', marginBottom: '14px' }}>
             Credentials
           </div>
-          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: isMobile ? '30px' : '44px', fontWeight: 600, lineHeight: 1.06, letterSpacing: '-0.025em', margin: 0, color: '#1d1d1f' }}>
+          <h2 className="rsp-h2" style={{ fontFamily: 'var(--font-display)', fontSize: '44px', fontWeight: 600, lineHeight: 1.06, letterSpacing: '-0.025em', margin: 0, color: '#1d1d1f' }}>
             Certifications.
           </h2>
         </ScrollReveal>
@@ -138,9 +141,10 @@ export default function CertificationsSection() {
             onClick={prev}
             aria-label="Previous certifications"
             disabled={idx === 0}
+            className="rsp-cert-l"
             style={{
               position: 'absolute',
-              left: isMobile ? '4px' : '-20px',
+              left: '-20px',
               top: '50%',
               transform: 'translateY(-50%)',
               width: '40px',
@@ -166,9 +170,10 @@ export default function CertificationsSection() {
             onClick={next}
             aria-label="Next certifications"
             disabled={idx >= maxIdx}
+            className="rsp-cert-r"
             style={{
               position: 'absolute',
-              right: isMobile ? '4px' : '-20px',
+              right: '-20px',
               top: '50%',
               transform: 'translateY(-50%)',
               width: '40px',
