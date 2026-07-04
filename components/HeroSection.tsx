@@ -61,12 +61,18 @@ export default function HeroSection() {
           </>
         ) : (
           <>
-            {/* State B: Hand video (luminosity blend) + halftone dot overlay */}
+            {/* State B: warm-white base so luminosity blend is visible (blend needs
+                a light destination — pure black would collapse it to black) */}
+            <div aria-hidden="true" style={{ position: 'absolute', inset: 0, background: '#F5F3EF' }} />
+            {/* Hand video: luminosity blend desaturates it against the warm base */}
             <video
               autoPlay muted loop playsInline aria-hidden="true"
               style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.85, mixBlendMode: 'luminosity' }}
               src="/hero_bg_animation_hand.mp4"
             />
+            {/* Dark overlay so text remains legible on the portfolio's dark theme */}
+            <div aria-hidden="true" style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.52)' }} />
+            {/* Halftone dot grid — premium printed-ink texture */}
             <div
               aria-hidden="true"
               style={{
