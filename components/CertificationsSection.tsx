@@ -7,7 +7,6 @@ import ScrollReveal from './ScrollReveal'
 import { useIsMobile } from '@/lib/useIsMobile'
 
 const GAP = 20
-const AUTO_MS = 4000
 
 export default function CertificationsSection() {
   const isMobile = useIsMobile()
@@ -42,12 +41,6 @@ export default function CertificationsSection() {
   useEffect(() => {
     if (idx > maxIdx) setIdx(maxIdx)
   }, [maxIdx, idx])
-
-  // Auto-advance
-  useEffect(() => {
-    const t = setInterval(() => setIdx((i) => (i >= maxIdx ? 0 : i + 1)), AUTO_MS)
-    return () => clearInterval(t)
-  }, [maxIdx])
 
   return (
     <section

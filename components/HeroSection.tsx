@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 import TypewriterText from './TypewriterText'
@@ -18,6 +18,19 @@ const fadeUp = (delay = 0) => ({
 
 export default function HeroSection() {
   const [showDesc, setShowDesc] = useState(false)
+  // 0 = State A (Alumica video), 1 = State B (hand video + halftone)
+  // mounted stays false on server so SSR always renders State A — no hydration mismatch
+  const [bgVariant, setBgVariant] = useState(0)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    const key = 'hero-bg-variant'
+    const current = parseInt(sessionStorage.getItem(key) ?? '0', 10)
+    // Flip for next visit so it alternates: A → B → A → B …
+    sessionStorage.setItem(key, current === 0 ? '1' : '0')
+    setBgVariant(current)
+    setMounted(true)
+  }, [])
 
   return (
     <section
@@ -32,41 +45,43 @@ export default function HeroSection() {
         color: '#fff',
       }}
     >
-      {/* ── Layer 1: Alumica video background ── */}
-      <video
-        autoPlay
-        muted
-        loop
-        playsInline
-        aria-hidden="true"
-        style={{
-          position: 'absolute',
-          inset: 0,
-          width: '100%',
-          height: '100%',
-          objectFit: 'cover',
-          zIndex: 0,
-        }}
-        src="https://cdn.sceneai.art/Hero%20Section%20Video/5a6cf9a9-9f93-4e44-88f3-cf666065daf7.mp4"
-      />
-
-      {/* ── Layer 2: 40% black overlay ── */}
-      <div
-        aria-hidden="true"
-        style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.42)', zIndex: 1 }}
-      />
-
-      {/* ── Layer 3: Blue radial glow ── */}
-      <div
-        aria-hidden="true"
-        style={{
-          position: 'absolute',
-          inset: 0,
-          background: 'radial-gradient(120% 80% at 50% -10%, rgba(0,102,204,0.24), transparent 58%)',
-          pointerEvents: 'none',
-          zIndex: 2,
-        }}
-      />
+      {/* ── Background container: strictly isolated, never overlaps foreground ── */}
+      <div style={{ position: 'absolute', inset: 0, zIndex: 0, overflow: 'hidden' }}>
+        {/* Default SSR render is State A; stays A if bgVariant===0 after mount */}
+        {(!mounted || bgVariant === 0) ? (
+          <>
+            {/* State A: Alumica cinematic video + dark overlay + blue glow */}
+            <video
+              autoPlay muted loop playsInline aria-hidden="true"
+              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+              src="https://cdn.sceneai.art/Hero%20Section%20Video/5a6cf9a9-9f93-4e44-88f3-cf666065daf7.mp4"
+            />
+            <div aria-hidden="true" style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.42)' }} />
+            <div aria-hidden="true" style={{ position: 'absolute', inset: 0, background: 'radial-gradient(120% 80% at 50% -10%, rgba(0,102,204,0.24), transparent 58%)', pointerEvents: 'none' }} />
+          </>
+        ) : (
+          <>
+            {/* State B: Hand video (luminosity blend) + halftone dot overlay */}
+            <video
+              autoPlay muted loop playsInline aria-hidden="true"
+              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.85, mixBlendMode: 'luminosity' }}
+              src="/hero_bg_animation_hand.mp4"
+            />
+            <div
+              aria-hidden="true"
+              style={{
+                position: 'absolute',
+                inset: 0,
+                pointerEvents: 'none',
+                backgroundImage:
+                  'radial-gradient(circle, rgba(10,10,10,0.15) 1px, transparent 1px), radial-gradient(circle, rgba(10,10,10,0.15) 1px, transparent 1px)',
+                backgroundSize: '6px 6px',
+                backgroundPosition: '0 0, 3px 3px',
+              }}
+            />
+          </>
+        )}
+      </div>
 
       {/* ── Layer 4: Content ── */}
       <div
