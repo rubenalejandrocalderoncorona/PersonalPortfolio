@@ -125,6 +125,7 @@ export default function CLIAnimation() {
   return (
     <div
       ref={wrapRef}
+      className="rsp-cli"
       style={{
         borderRadius: '12px',
         overflow: 'hidden',
@@ -167,6 +168,7 @@ export default function CLIAnimation() {
 
       {/* ── Terminal body — expands to fit all content, no scroll ── */}
       <div
+        className="rsp-cli-body"
         style={{
           padding: '16px 20px',
           color: '#1d1d1f',
@@ -261,12 +263,14 @@ export default function CLIAnimation() {
 
         {/* Deployment tree */}
         {after('tree', 'done') && (
-          <div style={{ fontSize: '12.5px' }}>
-            {TREE.slice(0, lines).map((row, i) => (
-              <div key={i}>
-                <TreeRow row={row} />
-              </div>
-            ))}
+          <div style={{ overflowX: 'auto', fontSize: '12.5px' }}>
+            <div style={{ display: 'inline-block', minWidth: '100%' }}>
+              {TREE.slice(0, lines).map((row, i) => (
+                <div key={i} style={{ whiteSpace: 'nowrap' }}>
+                  <TreeRow row={row} />
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>

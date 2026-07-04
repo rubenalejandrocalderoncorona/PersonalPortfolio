@@ -195,4 +195,8 @@ a {
   /* Hint text swap: show mobile version, hide desktop version */
   .hint-desktop { display: none; }
   .hint-mobile  { display: inline; }
+
+  /* CLI terminal: smaller font on mobile so content fits */
+  .rsp-cli { font-size: 10px !important; }
+  .rsp-cli .rsp-cli-body { padding: 12px 14px !important; }
 }

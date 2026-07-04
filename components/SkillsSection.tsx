@@ -46,6 +46,11 @@ export default function SkillsSection() {
           </h2>
         </ScrollReveal>
 
+        {/* Terminal animation */}
+        <ScrollReveal style={{ marginBottom: '48px' }}>
+          <CLIAnimation />
+        </ScrollReveal>
+
         {/* Legend */}
         <ScrollReveal style={{ marginBottom: '40px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '24px', flexWrap: 'wrap' }}>
@@ -70,9 +75,6 @@ export default function SkillsSection() {
             })}
           </div>
         </ScrollReveal>
-
-        {/* Terminal animation */}
-        <CLIAnimation />
 
         {/* Skills grid */}
         <div className="rsp-grid-1col" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '18px' }}>
