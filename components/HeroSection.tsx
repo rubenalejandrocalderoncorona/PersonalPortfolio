@@ -69,7 +69,7 @@ export default function HeroSection() {
                 position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover',
                 filter: 'grayscale(1) brightness(0.55)',
               }}
-              src="/hero_bg_animation_hand.mp4"
+              src="/CinematicHand.mp4"
             />
             {/* Dark overlay for text legibility */}
             <div aria-hidden="true" style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.45)' }} />
