@@ -1,0 +1,16 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "agent-trace-lint"
+version = "0.1.0"
+description = "Lint tool for agent traces"
+requires-python = ">=3.10"
+dependencies = []
+
+[project.scripts]
+agent-trace-lint = "agent_trace_lint.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/agent_trace_lint"]
