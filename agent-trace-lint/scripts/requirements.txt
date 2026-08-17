@@ -1,0 +1,3 @@
+opentelemetry-api
+opentelemetry-sdk
+# openai  # only needed for the real-API path (AGENT_TRACE_LINT_USE_OPENAI=1)

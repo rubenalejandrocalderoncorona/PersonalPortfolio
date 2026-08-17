@@ -1,0 +1,373 @@
+[
+  {
+    "name": "chat mock-llm",
+    "context": {
+      "trace_id": "0x3dafbce347cd6ce6cb1e8981e702a1c5",
+      "span_id": "0x4d3b26a3e7a0898b",
+      "trace_state": "[]"
+    },
+    "kind": "SpanKind.CLIENT",
+    "parent_id": "0xba6fa3e1ef7fa23e",
+    "start_time": "2026-08-16T06:15:13.602843Z",
+    "end_time": "2026-08-16T06:15:13.603005Z",
+    "status": {
+      "status_code": "OK"
+    },
+    "attributes": {
+      "gen_ai.operation.name": "chat",
+      "gen_ai.system": "mock",
+      "gen_ai.request.model": "mock-llm",
+      "gen_ai.response.model": "mock-llm",
+      "gen_ai.response.finish_reasons": [
+        "tool_calls"
+      ],
+      "gen_ai.usage.input_tokens": 64,
+      "gen_ai.usage.output_tokens": 18,
+      "gen_ai.response.tool_calls": [
+        "get_weather"
+      ]
+    },
+    "events": [],
+    "links": [],
+    "resource": {
+      "attributes": {
+        "telemetry.sdk.language": "python",
+        "telemetry.sdk.name": "opentelemetry",
+        "telemetry.sdk.version": "1.44.0",
+        "service.instance.id": "52ef5bf4-55f5-4a30-a45d-3b5134356413",
+        "service.name": "agent-trace-lint-sample"
+      },
+      "schema_url": ""
+    }
+  },
+  {
+    "name": "execute_tool get_weather",
+    "context": {
+      "trace_id": "0x3dafbce347cd6ce6cb1e8981e702a1c5",
+      "span_id": "0xba641c4168839610",
+      "trace_state": "[]"
+    },
+    "kind": "SpanKind.INTERNAL",
+    "parent_id": "0xba6fa3e1ef7fa23e",
+    "start_time": "2026-08-16T06:15:13.604694Z",
+    "end_time": "2026-08-16T06:15:13.604742Z",
+    "status": {
+      "status_code": "OK"
+    },
+    "attributes": {
+      "gen_ai.operation.name": "execute_tool",
+      "gen_ai.tool.name": "get_weather",
+      "gen_ai.tool.call.id": "call_e4548e83",
+      "gen_ai.tool.call.arguments": "{\"city\": \"Paris\"}",
+      "gen_ai.tool.call.result": "{\"city\": \"Paris\", \"temp_c\": 18, \"condition\": \"cloudy\"}"
+    },
+    "events": [],
+    "links": [],
+    "resource": {
+      "attributes": {
+        "telemetry.sdk.language": "python",
+        "telemetry.sdk.name": "opentelemetry",
+        "telemetry.sdk.version": "1.44.0",
+        "service.instance.id": "52ef5bf4-55f5-4a30-a45d-3b5134356413",
+        "service.name": "agent-trace-lint-sample"
+      },
+      "schema_url": ""
+    }
+  },
+  {
+    "name": "chat mock-llm",
+    "context": {
+      "trace_id": "0x3dafbce347cd6ce6cb1e8981e702a1c5",
+      "span_id": "0x2e5b8db4b1091cf7",
+      "trace_state": "[]"
+    },
+    "kind": "SpanKind.CLIENT",
+    "parent_id": "0xba6fa3e1ef7fa23e",
+    "start_time": "2026-08-16T06:15:13.604984Z",
+    "end_time": "2026-08-16T06:15:13.605045Z",
+    "status": {
+      "status_code": "OK"
+    },
+    "attributes": {
+      "gen_ai.operation.name": "chat",
+      "gen_ai.system": "mock",
+      "gen_ai.request.model": "mock-llm",
+      "gen_ai.response.model": "mock-llm",
+      "gen_ai.response.finish_reasons": [
+        "tool_calls"
+      ],
+      "gen_ai.usage.input_tokens": 88,
+      "gen_ai.usage.output_tokens": 18,
+      "gen_ai.response.tool_calls": [
+        "get_weather"
+      ]
+    },
+    "events": [],
+    "links": [],
+    "resource": {
+      "attributes": {
+        "telemetry.sdk.language": "python",
+        "telemetry.sdk.name": "opentelemetry",
+        "telemetry.sdk.version": "1.44.0",
+        "service.instance.id": "52ef5bf4-55f5-4a30-a45d-3b5134356413",
+        "service.name": "agent-trace-lint-sample"
+      },
+      "schema_url": ""
+    }
+  },
+  {
+    "name": "execute_tool get_weather",
+    "context": {
+      "trace_id": "0x3dafbce347cd6ce6cb1e8981e702a1c5",
+      "span_id": "0x8de46d99cb7ccf67",
+      "trace_state": "[]"
+    },
+    "kind": "SpanKind.INTERNAL",
+    "parent_id": "0xba6fa3e1ef7fa23e",
+    "start_time": "2026-08-16T06:15:13.605232Z",
+    "end_time": "2026-08-16T06:15:13.605265Z",
+    "status": {
+      "status_code": "OK"
+    },
+    "attributes": {
+      "gen_ai.operation.name": "execute_tool",
+      "gen_ai.tool.name": "get_weather",
+      "gen_ai.tool.call.id": "call_c481dc9d",
+      "gen_ai.tool.call.arguments": "{\"city\": \"Paris\"}",
+      "gen_ai.tool.call.result": "{\"city\": \"Paris\", \"temp_c\": 18, \"condition\": \"cloudy\"}"
+    },
+    "events": [],
+    "links": [],
+    "resource": {
+      "attributes": {
+        "telemetry.sdk.language": "python",
+        "telemetry.sdk.name": "opentelemetry",
+        "telemetry.sdk.version": "1.44.0",
+        "service.instance.id": "52ef5bf4-55f5-4a30-a45d-3b5134356413",
+        "service.name": "agent-trace-lint-sample"
+      },
+      "schema_url": ""
+    }
+  },
+  {
+    "name": "chat mock-llm",
+    "context": {
+      "trace_id": "0x3dafbce347cd6ce6cb1e8981e702a1c5",
+      "span_id": "0x7d5252f6d40f8f11",
+      "trace_state": "[]"
+    },
+    "kind": "SpanKind.CLIENT",
+    "parent_id": "0xba6fa3e1ef7fa23e",
+    "start_time": "2026-08-16T06:15:13.605583Z",
+    "end_time": "2026-08-16T06:15:13.605635Z",
+    "status": {
+      "status_code": "OK"
+    },
+    "attributes": {
+      "gen_ai.operation.name": "chat",
+      "gen_ai.system": "mock",
+      "gen_ai.request.model": "mock-llm",
+      "gen_ai.response.model": "mock-llm",
+      "gen_ai.response.finish_reasons": [
+        "tool_calls"
+      ],
+      "gen_ai.usage.input_tokens": 112,
+      "gen_ai.usage.output_tokens": 18,
+      "gen_ai.response.tool_calls": [
+        "search_database"
+      ]
+    },
+    "events": [],
+    "links": [],
+    "resource": {
+      "attributes": {
+        "telemetry.sdk.language": "python",
+        "telemetry.sdk.name": "opentelemetry",
+        "telemetry.sdk.version": "1.44.0",
+        "service.instance.id": "52ef5bf4-55f5-4a30-a45d-3b5134356413",
+        "service.name": "agent-trace-lint-sample"
+      },
+      "schema_url": ""
+    }
+  },
+  {
+    "name": "execute_tool search_database",
+    "context": {
+      "trace_id": "0x3dafbce347cd6ce6cb1e8981e702a1c5",
+      "span_id": "0x202adaf4e7676147",
+      "trace_state": "[]"
+    },
+    "kind": "SpanKind.INTERNAL",
+    "parent_id": "0xba6fa3e1ef7fa23e",
+    "start_time": "2026-08-16T06:15:13.605810Z",
+    "end_time": "2026-08-16T06:15:13.605840Z",
+    "status": {
+      "status_code": "OK"
+    },
+    "attributes": {
+      "gen_ai.operation.name": "execute_tool",
+      "gen_ai.tool.name": "search_database",
+      "gen_ai.tool.call.id": "call_66c10fc0",
+      "gen_ai.tool.call.arguments": "{\"query\": \"Paris travel advisories\"}",
+      "gen_ai.tool.call.result": "{\"query\": \"Paris travel advisories\", \"results\": [\"No active travel advisories for Paris.\"]}"
+    },
+    "events": [],
+    "links": [],
+    "resource": {
+      "attributes": {
+        "telemetry.sdk.language": "python",
+        "telemetry.sdk.name": "opentelemetry",
+        "telemetry.sdk.version": "1.44.0",
+        "service.instance.id": "52ef5bf4-55f5-4a30-a45d-3b5134356413",
+        "service.name": "agent-trace-lint-sample"
+      },
+      "schema_url": ""
+    }
+  },
+  {
+    "name": "chat mock-llm",
+    "context": {
+      "trace_id": "0x3dafbce347cd6ce6cb1e8981e702a1c5",
+      "span_id": "0xcfed6472cfcac34d",
+      "trace_state": "[]"
+    },
+    "kind": "SpanKind.CLIENT",
+    "parent_id": "0xba6fa3e1ef7fa23e",
+    "start_time": "2026-08-16T06:15:13.606002Z",
+    "end_time": "2026-08-16T06:15:13.606045Z",
+    "status": {
+      "status_code": "OK"
+    },
+    "attributes": {
+      "gen_ai.operation.name": "chat",
+      "gen_ai.system": "mock",
+      "gen_ai.request.model": "mock-llm",
+      "gen_ai.response.model": "mock-llm",
+      "gen_ai.response.finish_reasons": [
+        "tool_calls"
+      ],
+      "gen_ai.usage.input_tokens": 136,
+      "gen_ai.usage.output_tokens": 18,
+      "gen_ai.response.tool_calls": [
+        "send_email"
+      ]
+    },
+    "events": [],
+    "links": [],
+    "resource": {
+      "attributes": {
+        "telemetry.sdk.language": "python",
+        "telemetry.sdk.name": "opentelemetry",
+        "telemetry.sdk.version": "1.44.0",
+        "service.instance.id": "52ef5bf4-55f5-4a30-a45d-3b5134356413",
+        "service.name": "agent-trace-lint-sample"
+      },
+      "schema_url": ""
+    }
+  },
+  {
+    "name": "execute_tool send_email",
+    "context": {
+      "trace_id": "0x3dafbce347cd6ce6cb1e8981e702a1c5",
+      "span_id": "0xaae3680df9744dbf",
+      "trace_state": "[]"
+    },
+    "kind": "SpanKind.INTERNAL",
+    "parent_id": "0xba6fa3e1ef7fa23e",
+    "start_time": "2026-08-16T06:15:13.606230Z",
+    "end_time": "2026-08-16T06:15:13.606275Z",
+    "status": {
+      "status_code": "OK"
+    },
+    "attributes": {
+      "gen_ai.operation.name": "execute_tool",
+      "gen_ai.tool.name": "send_email",
+      "gen_ai.tool.call.id": "call_cabca381",
+      "gen_ai.tool.call.arguments": "{\"to\": \"user@example.com\", \"subject\": \"Your Paris Trip Update\", \"body\": \"Weather is cloudy, 18C. No travel advisories found.\"}",
+      "gen_ai.tool.call.result": "{\"status\": \"sent\", \"to\": \"user@example.com\", \"message_id\": \"mock-45ad5c01\"}"
+    },
+    "events": [],
+    "links": [],
+    "resource": {
+      "attributes": {
+        "telemetry.sdk.language": "python",
+        "telemetry.sdk.name": "opentelemetry",
+        "telemetry.sdk.version": "1.44.0",
+        "service.instance.id": "52ef5bf4-55f5-4a30-a45d-3b5134356413",
+        "service.name": "agent-trace-lint-sample"
+      },
+      "schema_url": ""
+    }
+  },
+  {
+    "name": "chat mock-llm",
+    "context": {
+      "trace_id": "0x3dafbce347cd6ce6cb1e8981e702a1c5",
+      "span_id": "0x813419f7eff5126a",
+      "trace_state": "[]"
+    },
+    "kind": "SpanKind.CLIENT",
+    "parent_id": "0xba6fa3e1ef7fa23e",
+    "start_time": "2026-08-16T06:15:13.606444Z",
+    "end_time": "2026-08-16T06:15:13.606467Z",
+    "status": {
+      "status_code": "OK"
+    },
+    "attributes": {
+      "gen_ai.operation.name": "chat",
+      "gen_ai.system": "mock",
+      "gen_ai.request.model": "mock-llm",
+      "gen_ai.response.model": "mock-llm",
+      "gen_ai.response.finish_reasons": [
+        "stop"
+      ],
+      "gen_ai.usage.input_tokens": 160,
+      "gen_ai.usage.output_tokens": 24
+    },
+    "events": [],
+    "links": [],
+    "resource": {
+      "attributes": {
+        "telemetry.sdk.language": "python",
+        "telemetry.sdk.name": "opentelemetry",
+        "telemetry.sdk.version": "1.44.0",
+        "service.instance.id": "52ef5bf4-55f5-4a30-a45d-3b5134356413",
+        "service.name": "agent-trace-lint-sample"
+      },
+      "schema_url": ""
+    }
+  },
+  {
+    "name": "invoke_agent travel_assistant",
+    "context": {
+      "trace_id": "0x3dafbce347cd6ce6cb1e8981e702a1c5",
+      "span_id": "0xba6fa3e1ef7fa23e",
+      "trace_state": "[]"
+    },
+    "kind": "SpanKind.INTERNAL",
+    "parent_id": null,
+    "start_time": "2026-08-16T06:15:13.602671Z",
+    "end_time": "2026-08-16T06:15:13.606595Z",
+    "status": {
+      "status_code": "UNSET"
+    },
+    "attributes": {
+      "gen_ai.operation.name": "invoke_agent",
+      "gen_ai.agent.name": "travel_assistant",
+      "gen_ai.system": "mock",
+      "gen_ai.agent.final_response": "I checked the weather in Paris (cloudy, 18C), found no travel advisories, and sent you an email summary."
+    },
+    "events": [],
+    "links": [],
+    "resource": {
+      "attributes": {
+        "telemetry.sdk.language": "python",
+        "telemetry.sdk.name": "opentelemetry",
+        "telemetry.sdk.version": "1.44.0",
+        "service.instance.id": "52ef5bf4-55f5-4a30-a45d-3b5134356413",
+        "service.name": "agent-trace-lint-sample"
+      },
+      "schema_url": ""
+    }
+  }
+]
