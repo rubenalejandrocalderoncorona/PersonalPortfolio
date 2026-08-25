@@ -7,7 +7,9 @@ produce a realistic sample_trace.json to develop the linter against.
 Runs fully offline by default, using scripted fake LLM responses instead of
 a real model. The mock is deliberately scripted so the agent calls
 get_weather twice in a row before moving on -- a "stuck/repeated tool call"
-pattern the linter will eventually need to flag.
+pattern the linter needs to flag -- and so one step's stated reasoning has
+nothing to do with the tool it then calls (search_database) -- a
+reasoning/action mismatch pattern the linter also needs to flag.
 
 To route through the real OpenAI API instead, set OPENAI_API_KEY and:
     AGENT_TRACE_LINT_USE_OPENAI=1 python scripts/generate_sample_trace.py
@@ -104,14 +106,29 @@ TOOLS_SCHEMA = [
 # --------------------------------------------------------------------------
 
 MOCK_SCRIPT = [
-    {"tool": "get_weather", "args": {"city": "Paris"}},
-    {"tool": "get_weather", "args": {"city": "Paris"}},  # deliberate repeat
-    {"tool": "search_database", "args": {"query": "Paris travel advisories"}},
-    {"tool": "send_email", "args": {
-        "to": "user@example.com",
-        "subject": "Your Paris Trip Update",
-        "body": "Weather is cloudy, 18C. No travel advisories found.",
-    }},
+    {
+        "tool": "get_weather", "args": {"city": "Paris"},
+        "content": "I should check the current weather conditions in Paris before responding.",
+    },
+    {
+        # deliberate repeat -- same tool, same args, right after the last call
+        "tool": "get_weather", "args": {"city": "Paris"},
+        "content": "Let me look up the weather in Paris again to confirm.",
+    },
+    {
+        # deliberate reasoning/action mismatch -- the stated reasoning gives no
+        # indication a database search is coming
+        "tool": "search_database", "args": {"query": "Paris travel advisories"},
+        "content": "The weather looks good, I think I am done here and do not need to do anything else.",
+    },
+    {
+        "tool": "send_email", "args": {
+            "to": "user@example.com",
+            "subject": "Your Paris Trip Update",
+            "body": "Weather is cloudy, 18C. No travel advisories found.",
+        },
+        "content": "Time to email the user a summary of the weather and travel advisories I found.",
+    },
     {"tool": None, "content": (
         "I checked the weather in Paris (cloudy, 18C), found no travel "
         "advisories, and sent you an email summary."
@@ -131,7 +148,7 @@ def mock_llm_call(step, messages):
         }
     return {
         "finish_reason": "tool_calls",
-        "content": None,
+        "content": action["content"],
         "tool_calls": [{
             "id": f"call_{uuid.uuid4().hex[:8]}",
             "name": action["tool"],
@@ -211,8 +228,15 @@ def run_llm_span(step, messages, client):
         span.set_attribute("gen_ai.response.finish_reasons", [result["finish_reason"]])
         span.set_attribute("gen_ai.usage.input_tokens", result["usage"]["input_tokens"])
         span.set_attribute("gen_ai.usage.output_tokens", result["usage"]["output_tokens"])
+        if result["content"]:
+            span.set_attribute("gen_ai.response.text", result["content"])
         if result["tool_calls"]:
             span.set_attribute("gen_ai.response.tool_calls", [tc["name"] for tc in result["tool_calls"]])
+            span.set_attribute("gen_ai.response.tool_call_ids", [tc["id"] for tc in result["tool_calls"]])
+            span.set_attribute(
+                "gen_ai.response.tool_call_arguments",
+                [json.dumps(tc["arguments"]) for tc in result["tool_calls"]],
+            )
         span.set_status(Status(StatusCode.OK))
         return result
 
@@ -264,7 +288,7 @@ def main():
             for tc in result["tool_calls"]:
                 messages.append({
                     "role": "assistant",
-                    "content": None,
+                    "content": result["content"],
                     "tool_calls": [{
                         "id": tc["id"],
                         "type": "function",

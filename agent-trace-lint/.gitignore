@@ -12,3 +12,8 @@ venv/
 .ruff_cache/
 .coverage
 .env
+
+# local trace files may contain real tool arguments/reasoning text --
+# don't commit them by accident. The checked-in sample is explicitly allowed.
+traces/*.json
+!traces/sample_trace.json

@@ -5,9 +5,20 @@ build-backend = "hatchling.build"
 [project]
 name = "agent-trace-lint"
 version = "0.1.0"
-description = "Lint tool for agent traces"
+description = "A CLI linter for OpenTelemetry GenAI agent traces -- catches stuck-loop repetitions and reasoning/action mismatches"
+readme = "README.md"
 requires-python = ">=3.10"
-dependencies = []
+license = { text = "MIT" }
+authors = [
+    { name = "Ruben Calderon Corona", email = "rubenalejandrocalderoncorona@gmail.com" },
+]
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Testing",
+]
+dependencies = ["sentence-transformers"]
 
 [project.optional-dependencies]
 test = ["pytest"]

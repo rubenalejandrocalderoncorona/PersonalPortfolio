@@ -2,19 +2,51 @@ import argparse
 import json
 import sys
 
+from agent_trace_lint.detectors.mismatch import detect_mismatch
 from agent_trace_lint.detectors.repetition import detect_repetition
 
+DETECTORS = {
+    "repetition": detect_repetition,
+    "mismatch": detect_mismatch,
+}
 
-def _print_report(findings):
-    if not findings:
-        print("no repetition detected")
+
+def _format_repetition(finding):
+    span_ids = ", ".join(finding["span_ids"])
+    return (
+        f"  [REPEAT] '{finding['tool_name']}' called {finding['repeat_count']} times in a row\n"
+        f"           spans: {span_ids}"
+    )
+
+
+def _format_mismatch(finding):
+    span_ids = ", ".join(finding["span_ids"])
+    return (
+        f"  [MISMATCH] '{finding['tool_name']}' looks unrelated to its stated reasoning "
+        f"(score: {finding['score']})\n"
+        f"           reasoning: {finding['reasoning']!r}\n"
+        f"           spans: {span_ids}\n"
+        f"           note: {finding['note']}"
+    )
+
+
+FORMATTERS = {
+    "repetition": _format_repetition,
+    "mismatch": _format_mismatch,
+}
+
+
+def _print_report(results):
+    total = sum(len(findings) for findings in results.values())
+    if total == 0:
+        print("no issues detected")
         return
 
-    print(f"found {len(findings)} repetition issue(s):\n")
-    for finding in findings:
-        span_ids = ", ".join(finding["span_ids"])
-        print(f"  [REPEAT] '{finding['tool_name']}' called {finding['repeat_count']} times in a row")
-        print(f"           spans: {span_ids}\n")
+    print(f"found {total} issue(s):\n")
+    for detector_name, findings in results.items():
+        for finding in findings:
+            print(FORMATTERS[detector_name](finding))
+            print()
 
 
 def _run_check(args):
@@ -28,14 +60,24 @@ def _run_check(args):
         print(f"error: invalid JSON in {args.trace_path}: {exc}", file=sys.stderr)
         return 2
 
-    findings = detect_repetition(trace)
+    detector_names = [name.strip() for name in args.detectors.split(",") if name.strip()]
+    unknown = [name for name in detector_names if name not in DETECTORS]
+    if unknown:
+        print(
+            f"error: unknown detector(s): {', '.join(unknown)} (choices: {', '.join(DETECTORS)})",
+            file=sys.stderr,
+        )
+        return 2
+
+    results = {name: DETECTORS[name](trace) for name in detector_names}
 
     if args.format == "json":
-        print(json.dumps(findings, indent=2))
+        print(json.dumps(results, indent=2))
     else:
-        _print_report(findings)
+        _print_report(results)
 
-    return 1 if findings else 0
+    total = sum(len(findings) for findings in results.values())
+    return 1 if total else 0
 
 
 def main():
@@ -47,6 +89,11 @@ def main():
     check_parser = subparsers.add_parser("check")
     check_parser.add_argument("trace_path", help="path to a trace JSON file")
     check_parser.add_argument("--format", choices=["text", "json"], default="text")
+    check_parser.add_argument(
+        "--detectors",
+        default="repetition,mismatch",
+        help="comma-separated list of detectors to run (default: repetition,mismatch)",
+    )
 
     args = parser.parse_args()
 

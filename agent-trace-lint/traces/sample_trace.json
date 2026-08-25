@@ -2,14 +2,14 @@
   {
     "name": "chat mock-llm",
     "context": {
-      "trace_id": "0x3dafbce347cd6ce6cb1e8981e702a1c5",
-      "span_id": "0x4d3b26a3e7a0898b",
+      "trace_id": "0xe19c31b24d35bc69288cdd8be47a9fdb",
+      "span_id": "0x7fb195de0f012003",
       "trace_state": "[]"
     },
     "kind": "SpanKind.CLIENT",
-    "parent_id": "0xba6fa3e1ef7fa23e",
-    "start_time": "2026-08-16T06:15:13.602843Z",
-    "end_time": "2026-08-16T06:15:13.603005Z",
+    "parent_id": "0x7f4c0e24c6de59e4",
+    "start_time": "2026-08-18T06:49:55.478586Z",
+    "end_time": "2026-08-18T06:49:55.478679Z",
     "status": {
       "status_code": "OK"
     },
@@ -23,8 +23,15 @@
       ],
       "gen_ai.usage.input_tokens": 64,
       "gen_ai.usage.output_tokens": 18,
+      "gen_ai.response.text": "I should check the current weather conditions in Paris before responding.",
       "gen_ai.response.tool_calls": [
         "get_weather"
+      ],
+      "gen_ai.response.tool_call_ids": [
+        "call_7446f121"
+      ],
+      "gen_ai.response.tool_call_arguments": [
+        "{\"city\": \"Paris\"}"
       ]
     },
     "events": [],
@@ -34,7 +41,7 @@
         "telemetry.sdk.language": "python",
         "telemetry.sdk.name": "opentelemetry",
         "telemetry.sdk.version": "1.44.0",
-        "service.instance.id": "52ef5bf4-55f5-4a30-a45d-3b5134356413",
+        "service.instance.id": "2beec050-8e78-48f7-9b88-8112b1c6100d",
         "service.name": "agent-trace-lint-sample"
       },
       "schema_url": ""
@@ -43,21 +50,21 @@
   {
     "name": "execute_tool get_weather",
     "context": {
-      "trace_id": "0x3dafbce347cd6ce6cb1e8981e702a1c5",
-      "span_id": "0xba641c4168839610",
+      "trace_id": "0xe19c31b24d35bc69288cdd8be47a9fdb",
+      "span_id": "0x3b53978b5fa5e455",
       "trace_state": "[]"
     },
     "kind": "SpanKind.INTERNAL",
-    "parent_id": "0xba6fa3e1ef7fa23e",
-    "start_time": "2026-08-16T06:15:13.604694Z",
-    "end_time": "2026-08-16T06:15:13.604742Z",
+    "parent_id": "0x7f4c0e24c6de59e4",
+    "start_time": "2026-08-18T06:49:55.479255Z",
+    "end_time": "2026-08-18T06:49:55.479281Z",
     "status": {
       "status_code": "OK"
     },
     "attributes": {
       "gen_ai.operation.name": "execute_tool",
       "gen_ai.tool.name": "get_weather",
-      "gen_ai.tool.call.id": "call_e4548e83",
+      "gen_ai.tool.call.id": "call_7446f121",
       "gen_ai.tool.call.arguments": "{\"city\": \"Paris\"}",
       "gen_ai.tool.call.result": "{\"city\": \"Paris\", \"temp_c\": 18, \"condition\": \"cloudy\"}"
     },
@@ -68,7 +75,7 @@
         "telemetry.sdk.language": "python",
         "telemetry.sdk.name": "opentelemetry",
         "telemetry.sdk.version": "1.44.0",
-        "service.instance.id": "52ef5bf4-55f5-4a30-a45d-3b5134356413",
+        "service.instance.id": "2beec050-8e78-48f7-9b88-8112b1c6100d",
         "service.name": "agent-trace-lint-sample"
       },
       "schema_url": ""
@@ -77,14 +84,14 @@
   {
     "name": "chat mock-llm",
     "context": {
-      "trace_id": "0x3dafbce347cd6ce6cb1e8981e702a1c5",
-      "span_id": "0x2e5b8db4b1091cf7",
+      "trace_id": "0xe19c31b24d35bc69288cdd8be47a9fdb",
+      "span_id": "0x6b8487632c5883d0",
       "trace_state": "[]"
     },
     "kind": "SpanKind.CLIENT",
-    "parent_id": "0xba6fa3e1ef7fa23e",
-    "start_time": "2026-08-16T06:15:13.604984Z",
-    "end_time": "2026-08-16T06:15:13.605045Z",
+    "parent_id": "0x7f4c0e24c6de59e4",
+    "start_time": "2026-08-18T06:49:55.479418Z",
+    "end_time": "2026-08-18T06:49:55.479464Z",
     "status": {
       "status_code": "OK"
     },
@@ -98,8 +105,15 @@
       ],
       "gen_ai.usage.input_tokens": 88,
       "gen_ai.usage.output_tokens": 18,
+      "gen_ai.response.text": "Let me look up the weather in Paris again to confirm.",
       "gen_ai.response.tool_calls": [
         "get_weather"
+      ],
+      "gen_ai.response.tool_call_ids": [
+        "call_6b54ec97"
+      ],
+      "gen_ai.response.tool_call_arguments": [
+        "{\"city\": \"Paris\"}"
       ]
     },
     "events": [],
@@ -109,7 +123,7 @@
         "telemetry.sdk.language": "python",
         "telemetry.sdk.name": "opentelemetry",
         "telemetry.sdk.version": "1.44.0",
-        "service.instance.id": "52ef5bf4-55f5-4a30-a45d-3b5134356413",
+        "service.instance.id": "2beec050-8e78-48f7-9b88-8112b1c6100d",
         "service.name": "agent-trace-lint-sample"
       },
       "schema_url": ""
@@ -118,21 +132,21 @@
   {
     "name": "execute_tool get_weather",
     "context": {
-      "trace_id": "0x3dafbce347cd6ce6cb1e8981e702a1c5",
-      "span_id": "0x8de46d99cb7ccf67",
+      "trace_id": "0xe19c31b24d35bc69288cdd8be47a9fdb",
+      "span_id": "0x0ff8844d1bb1c7e1",
       "trace_state": "[]"
     },
     "kind": "SpanKind.INTERNAL",
-    "parent_id": "0xba6fa3e1ef7fa23e",
-    "start_time": "2026-08-16T06:15:13.605232Z",
-    "end_time": "2026-08-16T06:15:13.605265Z",
+    "parent_id": "0x7f4c0e24c6de59e4",
+    "start_time": "2026-08-18T06:49:55.479588Z",
+    "end_time": "2026-08-18T06:49:55.479611Z",
     "status": {
       "status_code": "OK"
     },
     "attributes": {
       "gen_ai.operation.name": "execute_tool",
       "gen_ai.tool.name": "get_weather",
-      "gen_ai.tool.call.id": "call_c481dc9d",
+      "gen_ai.tool.call.id": "call_6b54ec97",
       "gen_ai.tool.call.arguments": "{\"city\": \"Paris\"}",
       "gen_ai.tool.call.result": "{\"city\": \"Paris\", \"temp_c\": 18, \"condition\": \"cloudy\"}"
     },
@@ -143,7 +157,7 @@
         "telemetry.sdk.language": "python",
         "telemetry.sdk.name": "opentelemetry",
         "telemetry.sdk.version": "1.44.0",
-        "service.instance.id": "52ef5bf4-55f5-4a30-a45d-3b5134356413",
+        "service.instance.id": "2beec050-8e78-48f7-9b88-8112b1c6100d",
         "service.name": "agent-trace-lint-sample"
       },
       "schema_url": ""
@@ -152,14 +166,14 @@
   {
     "name": "chat mock-llm",
     "context": {
-      "trace_id": "0x3dafbce347cd6ce6cb1e8981e702a1c5",
-      "span_id": "0x7d5252f6d40f8f11",
+      "trace_id": "0xe19c31b24d35bc69288cdd8be47a9fdb",
+      "span_id": "0xbc51ad1e718c30b9",
       "trace_state": "[]"
     },
     "kind": "SpanKind.CLIENT",
-    "parent_id": "0xba6fa3e1ef7fa23e",
-    "start_time": "2026-08-16T06:15:13.605583Z",
-    "end_time": "2026-08-16T06:15:13.605635Z",
+    "parent_id": "0x7f4c0e24c6de59e4",
+    "start_time": "2026-08-18T06:49:55.479716Z",
+    "end_time": "2026-08-18T06:49:55.479749Z",
     "status": {
       "status_code": "OK"
     },
@@ -173,8 +187,15 @@
       ],
       "gen_ai.usage.input_tokens": 112,
       "gen_ai.usage.output_tokens": 18,
+      "gen_ai.response.text": "The weather looks good, I think I am done here and do not need to do anything else.",
       "gen_ai.response.tool_calls": [
         "search_database"
+      ],
+      "gen_ai.response.tool_call_ids": [
+        "call_a8a81c96"
+      ],
+      "gen_ai.response.tool_call_arguments": [
+        "{\"query\": \"Paris travel advisories\"}"
       ]
     },
     "events": [],
@@ -184,7 +205,7 @@
         "telemetry.sdk.language": "python",
         "telemetry.sdk.name": "opentelemetry",
         "telemetry.sdk.version": "1.44.0",
-        "service.instance.id": "52ef5bf4-55f5-4a30-a45d-3b5134356413",
+        "service.instance.id": "2beec050-8e78-48f7-9b88-8112b1c6100d",
         "service.name": "agent-trace-lint-sample"
       },
       "schema_url": ""
@@ -193,21 +214,21 @@
   {
     "name": "execute_tool search_database",
     "context": {
-      "trace_id": "0x3dafbce347cd6ce6cb1e8981e702a1c5",
-      "span_id": "0x202adaf4e7676147",
+      "trace_id": "0xe19c31b24d35bc69288cdd8be47a9fdb",
+      "span_id": "0x5ac63c850640b3d0",
       "trace_state": "[]"
     },
     "kind": "SpanKind.INTERNAL",
-    "parent_id": "0xba6fa3e1ef7fa23e",
-    "start_time": "2026-08-16T06:15:13.605810Z",
-    "end_time": "2026-08-16T06:15:13.605840Z",
+    "parent_id": "0x7f4c0e24c6de59e4",
+    "start_time": "2026-08-18T06:49:55.479859Z",
+    "end_time": "2026-08-18T06:49:55.479878Z",
     "status": {
       "status_code": "OK"
     },
     "attributes": {
       "gen_ai.operation.name": "execute_tool",
       "gen_ai.tool.name": "search_database",
-      "gen_ai.tool.call.id": "call_66c10fc0",
+      "gen_ai.tool.call.id": "call_a8a81c96",
       "gen_ai.tool.call.arguments": "{\"query\": \"Paris travel advisories\"}",
       "gen_ai.tool.call.result": "{\"query\": \"Paris travel advisories\", \"results\": [\"No active travel advisories for Paris.\"]}"
     },
@@ -218,7 +239,7 @@
         "telemetry.sdk.language": "python",
         "telemetry.sdk.name": "opentelemetry",
         "telemetry.sdk.version": "1.44.0",
-        "service.instance.id": "52ef5bf4-55f5-4a30-a45d-3b5134356413",
+        "service.instance.id": "2beec050-8e78-48f7-9b88-8112b1c6100d",
         "service.name": "agent-trace-lint-sample"
       },
       "schema_url": ""
@@ -227,14 +248,14 @@
   {
     "name": "chat mock-llm",
     "context": {
-      "trace_id": "0x3dafbce347cd6ce6cb1e8981e702a1c5",
-      "span_id": "0xcfed6472cfcac34d",
+      "trace_id": "0xe19c31b24d35bc69288cdd8be47a9fdb",
+      "span_id": "0xd7b4074745d6ef5a",
       "trace_state": "[]"
     },
     "kind": "SpanKind.CLIENT",
-    "parent_id": "0xba6fa3e1ef7fa23e",
-    "start_time": "2026-08-16T06:15:13.606002Z",
-    "end_time": "2026-08-16T06:15:13.606045Z",
+    "parent_id": "0x7f4c0e24c6de59e4",
+    "start_time": "2026-08-18T06:49:55.479997Z",
+    "end_time": "2026-08-18T06:49:55.480031Z",
     "status": {
       "status_code": "OK"
     },
@@ -248,8 +269,15 @@
       ],
       "gen_ai.usage.input_tokens": 136,
       "gen_ai.usage.output_tokens": 18,
+      "gen_ai.response.text": "Time to email the user a summary of the weather and travel advisories I found.",
       "gen_ai.response.tool_calls": [
         "send_email"
+      ],
+      "gen_ai.response.tool_call_ids": [
+        "call_f0851f20"
+      ],
+      "gen_ai.response.tool_call_arguments": [
+        "{\"to\": \"user@example.com\", \"subject\": \"Your Paris Trip Update\", \"body\": \"Weather is cloudy, 18C. No travel advisories found.\"}"
       ]
     },
     "events": [],
@@ -259,7 +287,7 @@
         "telemetry.sdk.language": "python",
         "telemetry.sdk.name": "opentelemetry",
         "telemetry.sdk.version": "1.44.0",
-        "service.instance.id": "52ef5bf4-55f5-4a30-a45d-3b5134356413",
+        "service.instance.id": "2beec050-8e78-48f7-9b88-8112b1c6100d",
         "service.name": "agent-trace-lint-sample"
       },
       "schema_url": ""
@@ -268,23 +296,23 @@
   {
     "name": "execute_tool send_email",
     "context": {
-      "trace_id": "0x3dafbce347cd6ce6cb1e8981e702a1c5",
-      "span_id": "0xaae3680df9744dbf",
+      "trace_id": "0xe19c31b24d35bc69288cdd8be47a9fdb",
+      "span_id": "0x7fac25fe2a304e22",
       "trace_state": "[]"
     },
     "kind": "SpanKind.INTERNAL",
-    "parent_id": "0xba6fa3e1ef7fa23e",
-    "start_time": "2026-08-16T06:15:13.606230Z",
-    "end_time": "2026-08-16T06:15:13.606275Z",
+    "parent_id": "0x7f4c0e24c6de59e4",
+    "start_time": "2026-08-18T06:49:55.480144Z",
+    "end_time": "2026-08-18T06:49:55.480171Z",
     "status": {
       "status_code": "OK"
     },
     "attributes": {
       "gen_ai.operation.name": "execute_tool",
       "gen_ai.tool.name": "send_email",
-      "gen_ai.tool.call.id": "call_cabca381",
+      "gen_ai.tool.call.id": "call_f0851f20",
       "gen_ai.tool.call.arguments": "{\"to\": \"user@example.com\", \"subject\": \"Your Paris Trip Update\", \"body\": \"Weather is cloudy, 18C. No travel advisories found.\"}",
-      "gen_ai.tool.call.result": "{\"status\": \"sent\", \"to\": \"user@example.com\", \"message_id\": \"mock-45ad5c01\"}"
+      "gen_ai.tool.call.result": "{\"status\": \"sent\", \"to\": \"user@example.com\", \"message_id\": \"mock-5327b186\"}"
     },
     "events": [],
     "links": [],
@@ -293,7 +321,7 @@
         "telemetry.sdk.language": "python",
         "telemetry.sdk.name": "opentelemetry",
         "telemetry.sdk.version": "1.44.0",
-        "service.instance.id": "52ef5bf4-55f5-4a30-a45d-3b5134356413",
+        "service.instance.id": "2beec050-8e78-48f7-9b88-8112b1c6100d",
         "service.name": "agent-trace-lint-sample"
       },
       "schema_url": ""
@@ -302,14 +330,14 @@
   {
     "name": "chat mock-llm",
     "context": {
-      "trace_id": "0x3dafbce347cd6ce6cb1e8981e702a1c5",
-      "span_id": "0x813419f7eff5126a",
+      "trace_id": "0xe19c31b24d35bc69288cdd8be47a9fdb",
+      "span_id": "0x1a009697f040e694",
       "trace_state": "[]"
     },
     "kind": "SpanKind.CLIENT",
-    "parent_id": "0xba6fa3e1ef7fa23e",
-    "start_time": "2026-08-16T06:15:13.606444Z",
-    "end_time": "2026-08-16T06:15:13.606467Z",
+    "parent_id": "0x7f4c0e24c6de59e4",
+    "start_time": "2026-08-18T06:49:55.480352Z",
+    "end_time": "2026-08-18T06:49:55.480370Z",
     "status": {
       "status_code": "OK"
     },
@@ -322,7 +350,8 @@
         "stop"
       ],
       "gen_ai.usage.input_tokens": 160,
-      "gen_ai.usage.output_tokens": 24
+      "gen_ai.usage.output_tokens": 24,
+      "gen_ai.response.text": "I checked the weather in Paris (cloudy, 18C), found no travel advisories, and sent you an email summary."
     },
     "events": [],
     "links": [],
@@ -331,7 +360,7 @@
         "telemetry.sdk.language": "python",
         "telemetry.sdk.name": "opentelemetry",
         "telemetry.sdk.version": "1.44.0",
-        "service.instance.id": "52ef5bf4-55f5-4a30-a45d-3b5134356413",
+        "service.instance.id": "2beec050-8e78-48f7-9b88-8112b1c6100d",
         "service.name": "agent-trace-lint-sample"
       },
       "schema_url": ""
@@ -340,14 +369,14 @@
   {
     "name": "invoke_agent travel_assistant",
     "context": {
-      "trace_id": "0x3dafbce347cd6ce6cb1e8981e702a1c5",
-      "span_id": "0xba6fa3e1ef7fa23e",
+      "trace_id": "0xe19c31b24d35bc69288cdd8be47a9fdb",
+      "span_id": "0x7f4c0e24c6de59e4",
       "trace_state": "[]"
     },
     "kind": "SpanKind.INTERNAL",
     "parent_id": null,
-    "start_time": "2026-08-16T06:15:13.602671Z",
-    "end_time": "2026-08-16T06:15:13.606595Z",
+    "start_time": "2026-08-18T06:49:55.478531Z",
+    "end_time": "2026-08-18T06:49:55.480457Z",
     "status": {
       "status_code": "UNSET"
     },
@@ -364,7 +393,7 @@
         "telemetry.sdk.language": "python",
         "telemetry.sdk.name": "opentelemetry",
         "telemetry.sdk.version": "1.44.0",
-        "service.instance.id": "52ef5bf4-55f5-4a30-a45d-3b5134356413",
+        "service.instance.id": "2beec050-8e78-48f7-9b88-8112b1c6100d",
         "service.name": "agent-trace-lint-sample"
       },
       "schema_url": ""
