@@ -61,6 +61,10 @@ def _run_check(args):
         return 2
 
     detector_names = [name.strip() for name in args.detectors.split(",") if name.strip()]
+    if not detector_names:
+        print("error: no detectors specified", file=sys.stderr)
+        return 2
+
     unknown = [name for name in detector_names if name not in DETECTORS]
     if unknown:
         print(
