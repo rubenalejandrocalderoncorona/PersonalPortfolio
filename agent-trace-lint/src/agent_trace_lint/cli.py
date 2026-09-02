@@ -73,7 +73,11 @@ def _run_check(args):
         )
         return 2
 
-    results = {name: DETECTORS[name](trace) for name in detector_names}
+    try:
+        results = {name: DETECTORS[name](trace) for name in detector_names}
+    except (TypeError, AttributeError) as exc:
+        print(f"error: malformed trace in {args.trace_path}: {exc}", file=sys.stderr)
+        return 2
 
     if args.format == "json":
         print(json.dumps(results, indent=2))

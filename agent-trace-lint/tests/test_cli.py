@@ -47,3 +47,17 @@ def test_blank_detectors_exits_2(clean_trace_path):
 def test_clean_trace_exits_0(clean_trace_path):
     args = make_args(clean_trace_path, detectors="repetition")
     assert _run_check(args) == 0
+
+
+def test_malformed_trace_shape_exits_2_not_traceback(tmp_path):
+    path = tmp_path / "trace.json"
+    path.write_text(json.dumps(42))
+    args = make_args(path, detectors="repetition")
+    assert _run_check(args) == 2
+
+
+def test_malformed_spans_value_exits_2_not_traceback(tmp_path):
+    path = tmp_path / "trace.json"
+    path.write_text(json.dumps({"spans": "not-a-list"}))
+    args = make_args(path, detectors="repetition")
+    assert _run_check(args) == 2
