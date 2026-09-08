@@ -1,9 +1,15 @@
 import argparse
 import json
 import sys
+from importlib.metadata import PackageNotFoundError, version
 
 from agent_trace_lint.detectors.mismatch import detect_mismatch
 from agent_trace_lint.detectors.repetition import detect_repetition
+
+try:
+    __version__ = version("agent-trace-lint")
+except PackageNotFoundError:
+    __version__ = "unknown"
 
 DETECTORS = {
     "repetition": detect_repetition,
@@ -90,6 +96,9 @@ def _run_check(args):
 
 def main():
     parser = argparse.ArgumentParser(prog="agent-trace-lint")
+    parser.add_argument(
+        "--version", action="version", version=f"%(prog)s {__version__}"
+    )
     subparsers = parser.add_subparsers(dest="command")
 
     subparsers.add_parser("hello")

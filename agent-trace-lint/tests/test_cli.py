@@ -1,5 +1,7 @@
 import argparse
 import json
+import subprocess
+import sys
 
 import pytest
 
@@ -61,3 +63,13 @@ def test_malformed_spans_value_exits_2_not_traceback(tmp_path):
     path.write_text(json.dumps({"spans": "not-a-list"}))
     args = make_args(path, detectors="repetition")
     assert _run_check(args) == 2
+
+
+def test_version_flag_exits_0_and_prints_version():
+    result = subprocess.run(
+        [sys.executable, "-m", "agent_trace_lint.cli", "--version"],
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0
+    assert "agent-trace-lint" in result.stdout
