@@ -55,6 +55,12 @@ Run only specific detectors with `--detectors` (comma-separated, default `repeti
 agent-trace-lint check traces/sample_trace.json --detectors repetition
 ```
 
+Getting false positives or negatives from the `mismatch` detector? Tune its cosine-similarity cutoff with `--mismatch-threshold` (default `0.3`) before opening an issue -- lower it to flag fewer, more clear-cut mismatches, or raise it to catch subtler ones:
+
+```bash
+agent-trace-lint check traces/sample_trace.json --detectors mismatch --mismatch-threshold 0.15
+```
+
 Use `--format json` for machine-readable output, grouped by detector:
 
 ```bash

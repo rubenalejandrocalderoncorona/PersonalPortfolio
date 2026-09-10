@@ -79,8 +79,12 @@ def _run_check(args):
         )
         return 2
 
+    detector_kwargs = {"mismatch": {"threshold": args.mismatch_threshold}}
     try:
-        results = {name: DETECTORS[name](trace) for name in detector_names}
+        results = {
+            name: DETECTORS[name](trace, **detector_kwargs.get(name, {}))
+            for name in detector_names
+        }
     except (TypeError, AttributeError) as exc:
         print(f"error: malformed trace in {args.trace_path}: {exc}", file=sys.stderr)
         return 2
@@ -110,6 +114,16 @@ def main():
         "--detectors",
         default="repetition,mismatch",
         help="comma-separated list of detectors to run (default: repetition,mismatch)",
+    )
+    check_parser.add_argument(
+        "--mismatch-threshold",
+        type=float,
+        default=0.3,
+        help=(
+            "cosine similarity below which the mismatch detector flags a step "
+            "(default: 0.3) -- lower it to reduce false positives, raise it to "
+            "catch more subtle mismatches"
+        ),
     )
 
     args = parser.parse_args()
