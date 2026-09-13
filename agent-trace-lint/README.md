@@ -61,6 +61,12 @@ Getting false positives or negatives from the `mismatch` detector? Tune its cosi
 agent-trace-lint check traces/sample_trace.json --detectors mismatch --mismatch-threshold 0.15
 ```
 
+Pass `-` as the trace path to read from stdin instead of a file -- useful when your trace exporter writes to a pipe rather than disk in CI:
+
+```bash
+your-agent-runner --export-trace | agent-trace-lint check -
+```
+
 Use `--format json` for machine-readable output, grouped by detector:
 
 ```bash

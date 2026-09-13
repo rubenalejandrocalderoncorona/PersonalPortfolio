@@ -1,4 +1,5 @@
 import argparse
+import io
 import json
 import subprocess
 import sys
@@ -81,6 +82,30 @@ def test_default_mismatch_threshold_flags_known_mismatch():
 def test_lower_mismatch_threshold_clears_known_mismatch():
     args = make_args(SAMPLE_TRACE_PATH, detectors="mismatch", mismatch_threshold=0.01)
     assert _run_check(args) == 0
+
+
+def test_stdin_input_clean_trace_exits_0(monkeypatch):
+    monkeypatch.setattr(sys, "stdin", io.StringIO(json.dumps([])))
+    args = make_args("-", detectors="repetition")
+    assert _run_check(args) == 0
+
+
+def test_stdin_invalid_json_reports_stdin_not_a_path(monkeypatch, capsys):
+    monkeypatch.setattr(sys, "stdin", io.StringIO("not json"))
+    args = make_args("-", detectors="repetition")
+    assert _run_check(args) == 2
+    assert "invalid JSON in stdin" in capsys.readouterr().err
+
+
+def test_stdin_end_to_end_via_subprocess():
+    result = subprocess.run(
+        [sys.executable, "-m", "agent_trace_lint.cli", "check", "-", "--detectors", "repetition"],
+        input=SAMPLE_TRACE_PATH.read_text(),
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 1
+    assert "REPEAT" in result.stdout
 
 
 def test_version_flag_exits_0_and_prints_version():

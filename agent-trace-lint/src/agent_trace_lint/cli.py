@@ -56,14 +56,18 @@ def _print_report(results):
 
 
 def _run_check(args):
+    source = "stdin" if args.trace_path == "-" else args.trace_path
     try:
-        with open(args.trace_path) as f:
-            trace = json.load(f)
+        if args.trace_path == "-":
+            trace = json.load(sys.stdin)
+        else:
+            with open(args.trace_path) as f:
+                trace = json.load(f)
     except FileNotFoundError:
         print(f"error: trace file not found: {args.trace_path}", file=sys.stderr)
         return 2
     except json.JSONDecodeError as exc:
-        print(f"error: invalid JSON in {args.trace_path}: {exc}", file=sys.stderr)
+        print(f"error: invalid JSON in {source}: {exc}", file=sys.stderr)
         return 2
 
     detector_names = [name.strip() for name in args.detectors.split(",") if name.strip()]
@@ -86,7 +90,7 @@ def _run_check(args):
             for name in detector_names
         }
     except (TypeError, AttributeError) as exc:
-        print(f"error: malformed trace in {args.trace_path}: {exc}", file=sys.stderr)
+        print(f"error: malformed trace in {source}: {exc}", file=sys.stderr)
         return 2
 
     if args.format == "json":
@@ -108,7 +112,9 @@ def main():
     subparsers.add_parser("hello")
 
     check_parser = subparsers.add_parser("check")
-    check_parser.add_argument("trace_path", help="path to a trace JSON file")
+    check_parser.add_argument(
+        "trace_path", help="path to a trace JSON file, or - to read from stdin"
+    )
     check_parser.add_argument("--format", choices=["text", "json"], default="text")
     check_parser.add_argument(
         "--detectors",
