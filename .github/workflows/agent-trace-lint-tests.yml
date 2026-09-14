@@ -1,0 +1,33 @@
+name: agent-trace-lint tests
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "agent-trace-lint/**"
+      - ".github/workflows/agent-trace-lint-tests.yml"
+  pull_request:
+    paths:
+      - "agent-trace-lint/**"
+      - ".github/workflows/agent-trace-lint-tests.yml"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: agent-trace-lint
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+          cache-dependency-path: agent-trace-lint/pyproject.toml
+
+      - name: Install agent-trace-lint with test dependencies
+        run: pip install -e ".[test]"
+
+      - name: Run tests
+        run: pytest -q

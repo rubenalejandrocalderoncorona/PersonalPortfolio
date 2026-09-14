@@ -1,5 +1,7 @@
 # agent-trace-lint
 
+[![tests](https://github.com/rubenalejandrocalderoncorona/PersonalPortfolio/actions/workflows/agent-trace-lint-tests.yml/badge.svg)](https://github.com/rubenalejandrocalderoncorona/PersonalPortfolio/actions/workflows/agent-trace-lint-tests.yml)
+
 A CLI linter for OpenTelemetry GenAI agent traces -- catches stuck-loop repetitions and reasoning/action mismatches that pass/fail evals miss.
 
 ## The gap

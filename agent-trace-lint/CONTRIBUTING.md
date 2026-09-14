@@ -28,3 +28,5 @@ To run the test suite locally:
 pip install -e ".[test]"
 pytest
 ```
+
+The same suite runs automatically in CI on every push and pull request that touches `agent-trace-lint/` -- see the badge at the top of the [README](README.md).
