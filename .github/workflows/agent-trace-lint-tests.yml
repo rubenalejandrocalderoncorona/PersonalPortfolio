@@ -22,6 +22,8 @@ jobs:
 
       - uses: actions/setup-python@v5
         with:
+          # Single version for now -- pyproject.toml declares support down to
+          # 3.10, but this doesn't matrix-test that yet.
           python-version: "3.11"
           cache: "pip"
           cache-dependency-path: agent-trace-lint/pyproject.toml
