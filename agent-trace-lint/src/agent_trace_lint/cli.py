@@ -83,7 +83,14 @@ def _run_check(args):
         )
         return 2
 
-    detector_kwargs = {"mismatch": {"threshold": args.mismatch_threshold}}
+    if args.repeat_min < 2:
+        print("error: --repeat-min must be at least 2", file=sys.stderr)
+        return 2
+
+    detector_kwargs = {
+        "mismatch": {"threshold": args.mismatch_threshold},
+        "repetition": {"n": args.repeat_min},
+    }
     try:
         results = {
             name: DETECTORS[name](trace, **detector_kwargs.get(name, {}))
@@ -120,6 +127,16 @@ def main():
         "--detectors",
         default="repetition,mismatch",
         help="comma-separated list of detectors to run (default: repetition,mismatch)",
+    )
+    check_parser.add_argument(
+        "--repeat-min",
+        type=int,
+        default=2,
+        help=(
+            "minimum length of a back-to-back identical tool-call run that "
+            "counts as a repetition (default: 2) -- raise it if your agent "
+            "legitimately retries a call once or twice before moving on"
+        ),
     )
     check_parser.add_argument(
         "--mismatch-threshold",

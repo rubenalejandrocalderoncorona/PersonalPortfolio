@@ -63,6 +63,12 @@ Getting false positives or negatives from the `mismatch` detector? Tune its cosi
 agent-trace-lint check traces/sample_trace.json --detectors mismatch --mismatch-threshold 0.15
 ```
 
+If your agent legitimately retries a call once or twice before moving on, raise `--repeat-min` (default `2`, minimum `2`) so the `repetition` detector only flags longer runs:
+
+```bash
+agent-trace-lint check traces/sample_trace.json --detectors repetition --repeat-min 3
+```
+
 Pass `-` as the trace path to read from stdin instead of a file -- useful when your trace exporter writes to a pipe rather than disk in CI:
 
 ```bash

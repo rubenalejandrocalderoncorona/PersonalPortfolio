@@ -12,12 +12,19 @@ from agent_trace_lint.cli import _run_check
 SAMPLE_TRACE_PATH = Path(__file__).resolve().parent.parent / "traces" / "sample_trace.json"
 
 
-def make_args(trace_path, detectors="repetition,mismatch", fmt="text", mismatch_threshold=0.3):
+def make_args(
+    trace_path,
+    detectors="repetition,mismatch",
+    fmt="text",
+    mismatch_threshold=0.3,
+    repeat_min=2,
+):
     return argparse.Namespace(
         trace_path=str(trace_path),
         detectors=detectors,
         format=fmt,
         mismatch_threshold=mismatch_threshold,
+        repeat_min=repeat_min,
     )
 
 
@@ -82,6 +89,21 @@ def test_default_mismatch_threshold_flags_known_mismatch():
 def test_lower_mismatch_threshold_clears_known_mismatch():
     args = make_args(SAMPLE_TRACE_PATH, detectors="mismatch", mismatch_threshold=0.01)
     assert _run_check(args) == 0
+
+
+def test_default_repeat_min_flags_known_repeat():
+    args = make_args(SAMPLE_TRACE_PATH, detectors="repetition")
+    assert _run_check(args) == 1
+
+
+def test_higher_repeat_min_clears_known_repeat():
+    args = make_args(SAMPLE_TRACE_PATH, detectors="repetition", repeat_min=3)
+    assert _run_check(args) == 0
+
+
+def test_repeat_min_below_2_exits_2(clean_trace_path):
+    args = make_args(clean_trace_path, detectors="repetition", repeat_min=1)
+    assert _run_check(args) == 2
 
 
 def test_stdin_input_clean_trace_exits_0(monkeypatch):
