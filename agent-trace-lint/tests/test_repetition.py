@@ -65,3 +65,28 @@ def test_detects_repeated_tool_call(trace_with_repeat):
 
 def test_no_findings_without_repeat(trace_without_repeat):
     assert detect_repetition(trace_without_repeat) == []
+
+
+def make_nameless_tool_span(span_id, arguments, start_time):
+    """A malformed execute_tool span missing gen_ai.tool.name entirely."""
+    return {
+        "name": "execute_tool",
+        "context": {"span_id": span_id},
+        "attributes": {
+            "gen_ai.operation.name": "execute_tool",
+            "gen_ai.tool.call.arguments": json.dumps(arguments),
+        },
+        "start_time": start_time,
+    }
+
+
+def test_unrelated_nameless_calls_are_not_flagged_as_repeat():
+    """Two different calls that both happen to be missing gen_ai.tool.name
+    (partial/buggy instrumentation) must not be grouped into a false
+    "'None' called N times in a row" finding.
+    """
+    trace = [
+        make_nameless_tool_span("s1", {}, "2026-01-01T00:00:00.000Z"),
+        make_nameless_tool_span("s2", {}, "2026-01-01T00:00:01.000Z"),
+    ]
+    assert detect_repetition(trace) == []

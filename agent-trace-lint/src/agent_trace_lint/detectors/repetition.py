@@ -30,9 +30,15 @@ def _tool_calls_in_order(spans):
         attributes = span.get("attributes") or {}
         if attributes.get("gen_ai.operation.name") != "execute_tool":
             continue
+        tool_name = attributes.get("gen_ai.tool.name")
+        if not tool_name:
+            # Malformed/partial instrumentation -- without a name there's no
+            # basis to call two such calls "the same call", so skip rather
+            # than risk grouping unrelated calls into a false repeat.
+            continue
         calls.append({
             "span_id": (span.get("context") or {}).get("span_id"),
-            "tool_name": attributes.get("gen_ai.tool.name"),
+            "tool_name": tool_name,
             "arguments": _parse_arguments(attributes.get("gen_ai.tool.call.arguments")),
             "start_time": span.get("start_time") or "",
         })

@@ -59,3 +59,20 @@ def test_flags_reasoning_that_diverges_from_action(trace_with_mismatched_reasoni
     assert finding["span_ids"] == ["s1"]
     assert finding["score"] < 0.3
     assert "heuristic" in finding["note"].lower()
+
+
+def test_nameless_tool_call_is_not_flagged():
+    """A tool_calls entry with no name (partial/buggy instrumentation) can't
+    be blamed in a useful finding, so it should be skipped rather than
+    surfaced as a "'None' looks unrelated to its stated reasoning" finding.
+    """
+    trace = [
+        make_chat_span(
+            "s1",
+            "The weather looks good, I think I am done here and do not need to do anything else.",
+            None,
+            {"query": "Paris travel advisories"},
+            "2026-01-01T00:00:00.000Z",
+        ),
+    ]
+    assert detect_mismatch(trace) == []

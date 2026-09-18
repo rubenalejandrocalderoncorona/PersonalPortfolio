@@ -81,6 +81,10 @@ def _reasoning_tool_pairs(spans):
             continue
         span_id = (span.get("context") or {}).get("span_id")
         for name, args_raw in zip(tool_names, tool_args):
+            if not name:
+                # Malformed/partial instrumentation -- a finding blaming a
+                # nameless tool call isn't actionable, so skip it.
+                continue
             pairs.append({
                 "span_id": span_id,
                 "reasoning": reasoning,
