@@ -3,7 +3,7 @@ import json
 import sys
 from importlib.metadata import PackageNotFoundError, version
 
-from agent_trace_lint.detectors.mismatch import detect_mismatch
+from agent_trace_lint.detectors.mismatch import ModelLoadError, detect_mismatch
 from agent_trace_lint.detectors.repetition import detect_repetition
 
 try:
@@ -96,6 +96,12 @@ def _run_check(args):
             name: DETECTORS[name](trace, **detector_kwargs.get(name, {}))
             for name in detector_names
         }
+    except ModelLoadError as exc:
+        print(
+            f"error: {exc} (use --detectors repetition to skip the mismatch detector)",
+            file=sys.stderr,
+        )
+        return 2
     except (TypeError, AttributeError) as exc:
         print(f"error: malformed trace in {source}: {exc}", file=sys.stderr)
         return 2

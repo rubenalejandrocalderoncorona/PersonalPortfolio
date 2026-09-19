@@ -91,6 +91,24 @@ def test_lower_mismatch_threshold_clears_known_mismatch():
     assert _run_check(args) == 0
 
 
+def test_model_load_failure_exits_2_not_traceback(monkeypatch, capsys):
+    import sentence_transformers
+
+    from agent_trace_lint.detectors import mismatch
+
+    def fail_to_download(*args, **kwargs):
+        raise OSError("couldn't connect to huggingface.co")
+
+    monkeypatch.setattr(mismatch, "_model", None)
+    monkeypatch.setattr(sentence_transformers, "SentenceTransformer", fail_to_download)
+
+    args = make_args(SAMPLE_TRACE_PATH, detectors="mismatch")
+    assert _run_check(args) == 2
+    err = capsys.readouterr().err
+    assert "could not load embedding model" in err
+    assert "--detectors repetition" in err
+
+
 def test_default_repeat_min_flags_known_repeat():
     args = make_args(SAMPLE_TRACE_PATH, detectors="repetition")
     assert _run_check(args) == 1

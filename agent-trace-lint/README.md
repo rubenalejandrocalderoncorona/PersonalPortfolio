@@ -49,7 +49,7 @@ found 2 issue(s):
            note: Score is cosine similarity from a general-purpose sentence embedding model (all-MiniLM-L6-v2), used as a first-pass heuristic only -- it has not been tuned or validated against a labeled dataset of real reasoning/action mismatches. Treat low scores as worth a human look, not as a confirmed mismatch.
 ```
 
-Exits `0` if the trace is clean, `1` if findings were reported (so it can gate CI), or `2` on a bad path/invalid JSON/unknown or empty `--detectors` list.
+Exits `0` if the trace is clean, `1` if findings were reported (so it can gate CI), or `2` on an error (bad path, invalid JSON, unknown or empty `--detectors` list, or the embedding model failing to load) -- so a broken environment is never mistaken for a lint finding.
 
 Run only specific detectors with `--detectors` (comma-separated, default `repetition,mismatch`):
 
@@ -104,7 +104,7 @@ agent-trace-lint check traces/sample_trace.json --format json
 }
 ```
 
-Note: the mismatch detector downloads its embedding model from Hugging Face on first use (cached locally after that) -- the first run needs network access, later runs don't.
+Note: the mismatch detector downloads its embedding model from Hugging Face on first use (cached locally after that) -- the first run needs network access, later runs don't. If that first download fails, the CLI exits `2` with a clear message; pass `--detectors repetition` to run without the model.
 
 ## Limitations
 

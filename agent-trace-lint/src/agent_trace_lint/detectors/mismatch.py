@@ -23,11 +23,21 @@ HEURISTIC_NOTE = (
 )
 
 
+class ModelLoadError(RuntimeError):
+    """The embedding model could not be loaded (e.g. first run, no network)."""
+
+
 def _get_model():
     global _model
     if _model is None:
         from sentence_transformers import SentenceTransformer
-        _model = SentenceTransformer(_MODEL_NAME)
+        try:
+            _model = SentenceTransformer(_MODEL_NAME)
+        except OSError as exc:
+            raise ModelLoadError(
+                f"could not load embedding model {_MODEL_NAME!r} ({exc}); the "
+                "first run downloads it from Hugging Face and needs network access"
+            ) from exc
     return _model
 
 
