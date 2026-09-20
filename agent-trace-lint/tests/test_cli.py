@@ -91,6 +91,27 @@ def test_lower_mismatch_threshold_clears_known_mismatch():
     assert _run_check(args) == 0
 
 
+def test_findings_on_spans_without_ids_still_render(tmp_path, capsys):
+    def tool_span(start_time):
+        return {
+            "attributes": {
+                "gen_ai.operation.name": "execute_tool",
+                "gen_ai.tool.name": "get_weather",
+                "gen_ai.tool.call.arguments": json.dumps({"city": "Paris"}),
+            },
+            "start_time": start_time,
+        }
+
+    path = tmp_path / "trace.json"
+    path.write_text(json.dumps([tool_span("2026-01-01T00:00:00Z"), tool_span("2026-01-01T00:00:01Z")]))
+
+    args = make_args(path, detectors="repetition")
+    assert _run_check(args) == 1
+    out = capsys.readouterr().out
+    assert "[REPEAT] 'get_weather' called 2 times in a row" in out
+    assert "<unknown>, <unknown>" in out
+
+
 def test_model_load_failure_exits_2_not_traceback(monkeypatch, capsys):
     import sentence_transformers
 

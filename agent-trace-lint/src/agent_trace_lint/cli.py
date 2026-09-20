@@ -17,8 +17,12 @@ DETECTORS = {
 }
 
 
+def _format_span_ids(span_ids):
+    return ", ".join("<unknown>" if sid is None else str(sid) for sid in span_ids)
+
+
 def _format_repetition(finding):
-    span_ids = ", ".join(finding["span_ids"])
+    span_ids = _format_span_ids(finding["span_ids"])
     return (
         f"  [REPEAT] '{finding['tool_name']}' called {finding['repeat_count']} times in a row\n"
         f"           spans: {span_ids}"
@@ -26,7 +30,7 @@ def _format_repetition(finding):
 
 
 def _format_mismatch(finding):
-    span_ids = ", ".join(finding["span_ids"])
+    span_ids = _format_span_ids(finding["span_ids"])
     return (
         f"  [MISMATCH] '{finding['tool_name']}' looks unrelated to its stated reasoning "
         f"(score: {finding['score']})\n"
