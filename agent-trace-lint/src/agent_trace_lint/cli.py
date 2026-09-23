@@ -70,6 +70,9 @@ def _run_check(args):
     except FileNotFoundError:
         print(f"error: trace file not found: {args.trace_path}", file=sys.stderr)
         return 2
+    except OSError as exc:
+        print(f"error: could not read {args.trace_path}: {exc.strerror or exc}", file=sys.stderr)
+        return 2
     except json.JSONDecodeError as exc:
         print(f"error: invalid JSON in {source}: {exc}", file=sys.stderr)
         return 2

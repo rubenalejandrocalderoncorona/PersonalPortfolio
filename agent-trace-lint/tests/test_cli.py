@@ -1,6 +1,7 @@
 import argparse
 import io
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -38,6 +39,26 @@ def clean_trace_path(tmp_path):
 def test_missing_file_exits_2(tmp_path):
     args = make_args(tmp_path / "does_not_exist.json")
     assert _run_check(args) == 2
+
+
+def test_directory_as_trace_path_exits_2_not_traceback(tmp_path):
+    args = make_args(tmp_path)
+    assert _run_check(args) == 2
+
+
+@pytest.mark.skipif(
+    sys.platform == "win32" or (hasattr(os, "geteuid") and os.geteuid() == 0),
+    reason="permission bits aren't enforced for root or on Windows",
+)
+def test_unreadable_file_exits_2_not_traceback(tmp_path):
+    path = tmp_path / "trace.json"
+    path.write_text(json.dumps([]))
+    path.chmod(0)
+    try:
+        args = make_args(path)
+        assert _run_check(args) == 2
+    finally:
+        path.chmod(0o644)
 
 
 def test_invalid_json_exits_2(tmp_path):
