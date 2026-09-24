@@ -2,7 +2,7 @@ import json
 
 import pytest
 
-from agent_trace_lint.detectors.mismatch import detect_mismatch
+from agent_trace_lint.detectors.mismatch import _reasoning_tool_pairs, detect_mismatch
 
 
 def make_chat_span(span_id, reasoning, tool_name, arguments, start_time):
@@ -76,3 +76,37 @@ def test_nameless_tool_call_is_not_flagged():
         ),
     ]
     assert detect_mismatch(trace) == []
+
+
+def make_chat_attributes_span(tool_calls, tool_call_arguments):
+    return {
+        "context": {"span_id": "s1"},
+        "attributes": {
+            "gen_ai.operation.name": "chat",
+            "gen_ai.response.text": "I will look things up.",
+            "gen_ai.response.tool_calls": tool_calls,
+            "gen_ai.response.tool_call_arguments": tool_call_arguments,
+        },
+    }
+
+
+def test_tool_call_without_matching_arguments_is_not_dropped():
+    span = make_chat_attributes_span(["get_weather", "search_database"], ['{"city": "Paris"}'])
+
+    pairs = _reasoning_tool_pairs([span])
+
+    assert [p["tool_name"] for p in pairs] == ["get_weather", "search_database"]
+    assert pairs[0]["arguments"] == {"city": "Paris"}
+    assert pairs[1]["arguments"] is None
+
+
+def test_scalar_tool_call_attributes_are_not_split_into_characters():
+    """Some exporters flatten single-element arrays to bare scalars; a string
+    must be treated as one tool call, not iterated character by character."""
+    span = make_chat_attributes_span("get_weather", '{"city": "Paris"}')
+
+    pairs = _reasoning_tool_pairs([span])
+
+    assert len(pairs) == 1
+    assert pairs[0]["tool_name"] == "get_weather"
+    assert pairs[0]["arguments"] == {"city": "Paris"}

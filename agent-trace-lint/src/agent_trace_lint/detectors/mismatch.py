@@ -10,6 +10,7 @@ real reasoning/action mismatches. A low score means "worth a human look",
 not "confirmed mismatch" -- treat it as a heuristic, not a verdict.
 """
 import json
+from itertools import zip_longest
 
 _MODEL_NAME = "all-MiniLM-L6-v2"
 _model = None
@@ -77,6 +78,16 @@ def _tool_call_text(tool_name, arguments):
     return f"called {tool_name} with {args_str}"
 
 
+def _as_list(value):
+    """Normalize an attribute that should be an array but may arrive as a
+    bare scalar (some exporters flatten single-element arrays)."""
+    if value is None:
+        return []
+    if isinstance(value, (list, tuple)):
+        return list(value)
+    return [value]
+
+
 def _reasoning_tool_pairs(spans):
     """Extract (reasoning, tool call) pairs from chat spans that carry both."""
     pairs = []
@@ -85,12 +96,12 @@ def _reasoning_tool_pairs(spans):
         if attributes.get("gen_ai.operation.name") != "chat":
             continue
         reasoning = attributes.get("gen_ai.response.text")
-        tool_names = attributes.get("gen_ai.response.tool_calls") or []
-        tool_args = attributes.get("gen_ai.response.tool_call_arguments") or []
+        tool_names = _as_list(attributes.get("gen_ai.response.tool_calls"))
+        tool_args = _as_list(attributes.get("gen_ai.response.tool_call_arguments"))
         if not reasoning or not tool_names:
             continue
         span_id = (span.get("context") or {}).get("span_id")
-        for name, args_raw in zip(tool_names, tool_args):
+        for name, args_raw in zip_longest(tool_names, tool_args):
             if not name:
                 # Malformed/partial instrumentation -- a finding blaming a
                 # nameless tool call isn't actionable, so skip it.
