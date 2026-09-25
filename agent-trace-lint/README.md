@@ -111,6 +111,7 @@ Note: the mismatch detector downloads its embedding model from Hugging Face on f
 This is v0.1. In particular:
 
 - **Repetition detection uses exact/near-exact matching.** It compares tool name and parsed arguments for equality -- it is not yet argument-similarity aware, so a retry with a trivially different argument (a different page number, a reworded query) won't be caught even though it's the same underlying loop.
+- **Repetition detection only sees back-to-back runs.** An agent bouncing between two calls (`search`, `read_page`, `search`, `read_page`, ...) is a classic stuck loop, but no single call repeats consecutively, so it isn't flagged. Cycle detection is a natural next step.
 - **Mismatch detection is a first-pass embedding-similarity heuristic**, not a validated classifier. It has not been tuned against a large labeled dataset of real reasoning/action mismatches -- treat a low score as "worth a human look," not "confirmed defect."
 - Both detectors are early and will misfire on trace shapes they haven't seen yet.
 
