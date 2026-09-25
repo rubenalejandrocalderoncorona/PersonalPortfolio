@@ -90,3 +90,9 @@ def test_unrelated_nameless_calls_are_not_flagged_as_repeat():
         make_nameless_tool_span("s2", {}, "2026-01-01T00:00:01.000Z"),
     ]
     assert detect_repetition(trace) == []
+
+
+@pytest.mark.parametrize("n", [1, 0, -3])
+def test_run_length_below_two_is_rejected(trace_with_repeat, n):
+    with pytest.raises(ValueError, match="at least 2"):
+        detect_repetition(trace_with_repeat, n=n)

@@ -56,7 +56,13 @@ def detect_repetition(trace, n: int = 2) -> list:
 
     Returns a list of findings, each: {tool_name, repeat_count, arguments,
     span_ids}, ordered by where the run starts in the trace.
+
+    Raises ValueError if `n` is below 2: a run of one call isn't a repetition,
+    and would flag every call in the trace.
     """
+    if n < 2:
+        raise ValueError(f"n must be at least 2, got {n}")
+
     calls = _tool_calls_in_order(_extract_spans(trace))
 
     findings = []
