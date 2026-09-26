@@ -14,14 +14,14 @@ SAMPLE_TRACE_PATH = Path(__file__).resolve().parent.parent / "traces" / "sample_
 
 
 def make_args(
-    trace_path,
+    *trace_paths,
     detectors="repetition,mismatch",
     fmt="text",
     mismatch_threshold=0.3,
     repeat_min=2,
 ):
     return argparse.Namespace(
-        trace_path=str(trace_path),
+        trace_paths=[str(p) for p in trace_paths],
         detectors=detectors,
         format=fmt,
         mismatch_threshold=mismatch_threshold,
@@ -208,3 +208,50 @@ def test_package_is_runnable_with_python_dash_m():
     )
     assert result.returncode == 1
     assert "REPEAT" in result.stdout
+
+
+def test_multiple_files_all_clean_exits_0(clean_trace_path, tmp_path):
+    other = tmp_path / "other.json"
+    other.write_text(json.dumps([]))
+    args = make_args(clean_trace_path, other, detectors="repetition")
+    assert _run_check(args) == 0
+
+
+def test_multiple_files_exit_1_if_any_has_findings(clean_trace_path):
+    args = make_args(clean_trace_path, SAMPLE_TRACE_PATH, detectors="repetition")
+    assert _run_check(args) == 1
+
+
+def test_multiple_files_report_is_labeled_per_file(clean_trace_path, capsys):
+    args = make_args(clean_trace_path, SAMPLE_TRACE_PATH, detectors="repetition")
+    _run_check(args)
+    out = capsys.readouterr().out
+    assert f"== {clean_trace_path} ==" in out
+    assert f"== {SAMPLE_TRACE_PATH} ==" in out
+
+
+def test_bad_file_among_many_still_checks_the_rest_and_exits_2(clean_trace_path, tmp_path, capsys):
+    args = make_args(clean_trace_path, tmp_path / "missing.json", SAMPLE_TRACE_PATH, detectors="repetition")
+    assert _run_check(args) == 2
+    captured = capsys.readouterr()
+    assert "trace file not found" in captured.err
+    assert "REPEAT" in captured.out
+
+
+def test_multiple_files_json_is_keyed_by_path(clean_trace_path, capsys):
+    args = make_args(clean_trace_path, SAMPLE_TRACE_PATH, detectors="repetition", fmt="json")
+    _run_check(args)
+    data = json.loads(capsys.readouterr().out)
+    assert data[str(clean_trace_path)] == {"repetition": []}
+    assert data[str(SAMPLE_TRACE_PATH)]["repetition"][0]["tool_name"] == "get_weather"
+
+
+def test_single_file_json_keeps_flat_shape(clean_trace_path, capsys):
+    args = make_args(clean_trace_path, detectors="repetition", fmt="json")
+    _run_check(args)
+    assert json.loads(capsys.readouterr().out) == {"repetition": []}
+
+
+def test_stdin_cannot_be_combined_with_other_paths(clean_trace_path):
+    args = make_args("-", clean_trace_path, detectors="repetition")
+    assert _run_check(args) == 2

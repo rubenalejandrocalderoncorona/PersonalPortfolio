@@ -59,22 +59,26 @@ def _print_report(results):
             print()
 
 
-def _run_check(args):
-    source = "stdin" if args.trace_path == "-" else args.trace_path
+def _load_trace(path):
+    """Return (trace, None) on success or (None, error message) on failure."""
     try:
-        if args.trace_path == "-":
-            trace = json.load(sys.stdin)
-        else:
-            with open(args.trace_path) as f:
-                trace = json.load(f)
+        if path == "-":
+            return json.load(sys.stdin), None
+        with open(path) as f:
+            return json.load(f), None
     except FileNotFoundError:
-        print(f"error: trace file not found: {args.trace_path}", file=sys.stderr)
-        return 2
+        return None, f"trace file not found: {path}"
     except OSError as exc:
-        print(f"error: could not read {args.trace_path}: {exc.strerror or exc}", file=sys.stderr)
-        return 2
+        return None, f"could not read {path}: {exc.strerror or exc}"
     except json.JSONDecodeError as exc:
-        print(f"error: invalid JSON in {source}: {exc}", file=sys.stderr)
+        source = "stdin" if path == "-" else path
+        return None, f"invalid JSON in {source}: {exc}"
+
+
+def _run_check(args):
+    trace_paths = args.trace_paths
+    if "-" in trace_paths and len(trace_paths) > 1:
+        print("error: - (stdin) can't be combined with other trace paths", file=sys.stderr)
         return 2
 
     detector_names = [name.strip() for name in args.detectors.split(",") if name.strip()]
@@ -98,28 +102,51 @@ def _run_check(args):
         "mismatch": {"threshold": args.mismatch_threshold},
         "repetition": {"n": args.repeat_min},
     }
-    try:
-        results = {
-            name: DETECTORS[name](trace, **detector_kwargs.get(name, {}))
-            for name in detector_names
-        }
-    except ModelLoadError as exc:
-        print(
-            f"error: {exc} (use --detectors repetition to skip the mismatch detector)",
-            file=sys.stderr,
-        )
-        return 2
-    except (TypeError, AttributeError) as exc:
-        print(f"error: malformed trace in {source}: {exc}", file=sys.stderr)
-        return 2
+
+    # Worst outcome across files wins: 2 (error) > 1 (findings) > 0 (clean).
+    exit_code = 0
+    all_results = {}
+    for path in trace_paths:
+        trace, error = _load_trace(path)
+        if error:
+            print(f"error: {error}", file=sys.stderr)
+            exit_code = 2
+            continue
+
+        source = "stdin" if path == "-" else path
+        try:
+            results = {
+                name: DETECTORS[name](trace, **detector_kwargs.get(name, {}))
+                for name in detector_names
+            }
+        except ModelLoadError as exc:
+            print(
+                f"error: {exc} (use --detectors repetition to skip the mismatch detector)",
+                file=sys.stderr,
+            )
+            return 2
+        except (TypeError, AttributeError) as exc:
+            print(f"error: malformed trace in {source}: {exc}", file=sys.stderr)
+            exit_code = 2
+            continue
+
+        all_results[path] = results
+        if any(results.values()):
+            exit_code = max(exit_code, 1)
 
     if args.format == "json":
-        print(json.dumps(results, indent=2))
+        if len(trace_paths) == 1:
+            if all_results:
+                print(json.dumps(all_results[trace_paths[0]], indent=2))
+        else:
+            print(json.dumps(all_results, indent=2))
     else:
-        _print_report(results)
+        for path, results in all_results.items():
+            if len(trace_paths) > 1:
+                print(f"== {path} ==")
+            _print_report(results)
 
-    total = sum(len(findings) for findings in results.values())
-    return 1 if total else 0
+    return exit_code
 
 
 def main():
@@ -133,7 +160,10 @@ def main():
 
     check_parser = subparsers.add_parser("check")
     check_parser.add_argument(
-        "trace_path", help="path to a trace JSON file, or - to read from stdin"
+        "trace_paths",
+        nargs="+",
+        metavar="trace_path",
+        help="path(s) to trace JSON file(s), or - to read a single trace from stdin",
     )
     check_parser.add_argument("--format", choices=["text", "json"], default="text")
     check_parser.add_argument(

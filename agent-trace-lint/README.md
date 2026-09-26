@@ -71,7 +71,15 @@ If your agent legitimately retries a call once or twice before moving on, raise 
 agent-trace-lint check traces/sample_trace.json --detectors repetition --repeat-min 3
 ```
 
-Pass `-` as the trace path to read from stdin instead of a file -- useful when your trace exporter writes to a pipe rather than disk in CI:
+Check several traces in one run (the embedding model is loaded once, not per file):
+
+```bash
+agent-trace-lint check traces/*.json
+```
+
+Each report is headed by its file name, and the exit code is the worst outcome across files (`2` if any file errored, else `1` if any had findings, else `0`) -- a bad file doesn't stop the rest from being checked. With `--format json`, a single file prints the flat `{detector: [findings]}` object shown below; multiple files print one object keyed by path.
+
+Pass `-` as the trace path to read from stdin instead of a file (it can't be combined with other paths) -- useful when your trace exporter writes to a pipe rather than disk in CI:
 
 ```bash
 your-agent-runner --export-trace | agent-trace-lint check -
