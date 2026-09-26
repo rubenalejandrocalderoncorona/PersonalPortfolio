@@ -49,6 +49,8 @@ found 2 issue(s):
            note: Score is cosine similarity from a general-purpose sentence embedding model (all-MiniLM-L6-v2), used as a first-pass heuristic only -- it has not been tuned or validated against a labeled dataset of real reasoning/action mismatches. Treat low scores as worth a human look, not as a confirmed mismatch.
 ```
 
+If the `agent-trace-lint` script isn't on your `PATH` (some CI images and virtualenvs), `python -m agent_trace_lint check ...` runs the same CLI.
+
 Exits `0` if the trace is clean, `1` if findings were reported (so it can gate CI), or `2` on an error (bad path, invalid JSON, unknown or empty `--detectors` list, or the embedding model failing to load) -- so a broken environment is never mistaken for a lint finding.
 
 Run only specific detectors with `--detectors` (comma-separated, default `repetition,mismatch`):

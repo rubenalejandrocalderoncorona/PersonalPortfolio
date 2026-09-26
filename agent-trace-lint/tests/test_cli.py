@@ -198,3 +198,13 @@ def test_version_flag_exits_0_and_prints_version():
     )
     assert result.returncode == 0
     assert "agent-trace-lint" in result.stdout
+
+
+def test_package_is_runnable_with_python_dash_m():
+    result = subprocess.run(
+        [sys.executable, "-m", "agent_trace_lint", "check", str(SAMPLE_TRACE_PATH), "--detectors", "repetition"],
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 1
+    assert "REPEAT" in result.stdout
