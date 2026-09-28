@@ -192,7 +192,20 @@ def main():
         ),
     )
 
-    args = parser.parse_args()
+    # argparse's nargs="+" positional stops consuming trace_paths at the
+    # first option it sees, so "check a.json --format json b.json" leaves
+    # b.json stranded as an "unrecognized argument" even though it's a
+    # perfectly valid trace path. parse_known_args() + manually reclaiming
+    # non-flag leftovers lets trace paths and options be freely interleaved.
+    args, extras = parser.parse_known_args()
+
+    if args.command == "check":
+        stray_flags = [e for e in extras if e != "-" and e.startswith("-")]
+        if stray_flags:
+            parser.error(f"unrecognized arguments: {' '.join(stray_flags)}")
+        args.trace_paths.extend(extras)
+    elif extras:
+        parser.error(f"unrecognized arguments: {' '.join(extras)}")
 
     if args.command == "hello":
         print("agent-trace-lint is alive")

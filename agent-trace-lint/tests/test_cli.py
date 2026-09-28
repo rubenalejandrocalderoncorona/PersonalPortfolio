@@ -255,3 +255,43 @@ def test_single_file_json_keeps_flat_shape(clean_trace_path, capsys):
 def test_stdin_cannot_be_combined_with_other_paths(clean_trace_path):
     args = make_args("-", clean_trace_path, detectors="repetition")
     assert _run_check(args) == 2
+
+
+def _run_cli(*cli_args):
+    return subprocess.run(
+        [sys.executable, "-m", "agent_trace_lint.cli", *cli_args],
+        capture_output=True,
+        text=True,
+    )
+
+
+def test_trace_path_interleaved_with_an_option_is_not_stranded(tmp_path):
+    """Regression test: argparse's nargs="+" positional used to stop
+    consuming trace_paths at the first option, leaving anything after it
+    reported as an "unrecognized argument" even though it's a valid path.
+    """
+    clean = tmp_path / "clean.json"
+    clean.write_text(json.dumps([]))
+
+    result = _run_cli("check", str(clean), "--detectors", "repetition", str(SAMPLE_TRACE_PATH))
+
+    assert result.returncode == 1, result.stderr
+    assert f"== {clean} ==" in result.stdout
+    assert f"== {SAMPLE_TRACE_PATH} ==" in result.stdout
+    assert "REPEAT" in result.stdout
+
+
+def test_unknown_flag_among_paths_still_errors_clearly(tmp_path):
+    clean = tmp_path / "clean.json"
+    clean.write_text(json.dumps([]))
+
+    result = _run_cli("check", str(clean), "--not-a-real-flag", str(SAMPLE_TRACE_PATH))
+
+    assert result.returncode == 2
+    assert "unrecognized arguments: --not-a-real-flag" in result.stderr
+
+
+def test_hello_rejects_stray_arguments():
+    result = _run_cli("hello", "extra")
+    assert result.returncode == 2
+    assert "unrecognized arguments: extra" in result.stderr
