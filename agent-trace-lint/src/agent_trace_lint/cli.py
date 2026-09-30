@@ -98,6 +98,14 @@ def _run_check(args):
         print("error: --repeat-min must be at least 2", file=sys.stderr)
         return 2
 
+    if not (-1.0 <= args.mismatch_threshold <= 1.0):
+        print(
+            "error: --mismatch-threshold must be between -1.0 and 1.0 "
+            "(it's a cosine similarity, not a percentage)",
+            file=sys.stderr,
+        )
+        return 2
+
     detector_kwargs = {
         "mismatch": {"threshold": args.mismatch_threshold},
         "repetition": {"n": args.repeat_min},

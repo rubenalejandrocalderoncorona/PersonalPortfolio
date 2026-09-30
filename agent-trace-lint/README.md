@@ -65,6 +65,8 @@ Getting false positives or negatives from the `mismatch` detector? Tune its cosi
 agent-trace-lint check traces/sample_trace.json --detectors mismatch --mismatch-threshold 0.15
 ```
 
+It's a cosine similarity, so it must be between `-1.0` and `1.0` -- a value outside that range (e.g. `30`, meant as a percentage) is rejected rather than run, since it would otherwise silently flag every pair or none at all.
+
 If your agent legitimately retries a call once or twice before moving on, raise `--repeat-min` (default `2`, minimum `2`) so the `repetition` detector only flags longer runs:
 
 ```bash

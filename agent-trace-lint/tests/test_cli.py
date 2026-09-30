@@ -112,6 +112,23 @@ def test_lower_mismatch_threshold_clears_known_mismatch():
     assert _run_check(args) == 0
 
 
+@pytest.mark.parametrize("threshold", [30, -2, 1.5, float("nan")])
+def test_mismatch_threshold_out_of_range_exits_2(clean_trace_path, threshold):
+    """A threshold outside [-1, 1] can't be a real cosine similarity -- most
+    plausibly a percentage typo (30 meaning 30%) -- and would otherwise
+    silently flag every pair (or none), so it's rejected outright rather
+    than run.
+    """
+    args = make_args(clean_trace_path, detectors="mismatch", mismatch_threshold=threshold)
+    assert _run_check(args) == 2
+
+
+@pytest.mark.parametrize("threshold", [-1.0, 1.0])
+def test_mismatch_threshold_boundary_values_are_accepted(threshold):
+    args = make_args(SAMPLE_TRACE_PATH, detectors="mismatch", mismatch_threshold=threshold)
+    assert _run_check(args) in (0, 1)
+
+
 def test_findings_on_spans_without_ids_still_render(tmp_path, capsys):
     def tool_span(start_time):
         return {
