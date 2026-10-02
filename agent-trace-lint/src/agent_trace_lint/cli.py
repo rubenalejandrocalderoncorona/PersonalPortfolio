@@ -166,14 +166,27 @@ def main():
 
     subparsers.add_parser("hello")
 
-    check_parser = subparsers.add_parser("check")
+    check_parser = subparsers.add_parser(
+        "check",
+        epilog=(
+            "exit codes: 0 clean, 1 findings reported, 2 error (bad path, "
+            "invalid JSON, bad flag value, or the embedding model failing "
+            "to load) -- with multiple trace paths, the worst of these "
+            "across all of them."
+        ),
+    )
     check_parser.add_argument(
         "trace_paths",
         nargs="+",
         metavar="trace_path",
         help="path(s) to trace JSON file(s), or - to read a single trace from stdin",
     )
-    check_parser.add_argument("--format", choices=["text", "json"], default="text")
+    check_parser.add_argument(
+        "--format",
+        choices=["text", "json"],
+        default="text",
+        help="output format (default: text)",
+    )
     check_parser.add_argument(
         "--detectors",
         default="repetition,mismatch",

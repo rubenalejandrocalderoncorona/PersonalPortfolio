@@ -312,3 +312,11 @@ def test_hello_rejects_stray_arguments():
     result = _run_cli("hello", "extra")
     assert result.returncode == 2
     assert "unrecognized arguments: extra" in result.stderr
+
+
+def test_check_help_documents_format_default_and_exit_codes():
+    result = _run_cli("check", "--help")
+    assert result.returncode == 0
+    assert "output format (default: text)" in result.stdout
+    assert "exit codes:" in result.stdout
+    assert "0 clean, 1 findings reported, 2 error" in result.stdout
