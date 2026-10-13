@@ -21,6 +21,10 @@ Two detectors run by default:
 - **repetition** -- flags a tool called with the same name and arguments back to back, the signature of a stuck agent loop.
 - **mismatch** -- flags a step where the model's stated reasoning looks unrelated to the tool it then calls, using offline sentence-embedding similarity as a first-pass heuristic.
 
+A third detector is available but opt-in (`--detectors repetition,mismatch,cycle`):
+
+- **cycle** -- flags a short sequence of calls that repeats back to back (`search`, `read_page`, `search`, `read_page`, ...), the alternating loop the repetition detector can't see because no single call repeats. It's opt-in because a legitimate polling loop (`check_status`, `wait`, `check_status`, ...) has the same shape.
+
 ## Install
 
 Not on PyPI yet -- install from source:
@@ -66,6 +70,17 @@ agent-trace-lint check traces/sample_trace.json --detectors mismatch --mismatch-
 ```
 
 It's a cosine similarity, so it must be between `-1.0` and `1.0` -- a value outside that range (e.g. `30`, meant as a percentage) is rejected rather than run, since it would otherwise silently flag every pair or none at all.
+
+To catch alternating loops, add the opt-in `cycle` detector. A sequence of 2-4 calls must repeat `--cycle-repeats` times in a row (default `3`, minimum `2`) before it's flagged:
+
+```bash
+agent-trace-lint check traces/sample_trace.json --detectors repetition,mismatch,cycle
+```
+
+```
+  [CYCLE] 'search' -> 'read_page' repeated 3 times (6 calls)
+          spans: 0x0000, 0x0001, 0x0002, 0x0003, 0x0004, 0x0005
+```
 
 If your agent legitimately retries a call once or twice before moving on, raise `--repeat-min` (default `2`, minimum `2`) so the `repetition` detector only flags longer runs:
 
@@ -123,7 +138,7 @@ Note: the mismatch detector downloads its embedding model from Hugging Face on f
 This is v0.1. In particular:
 
 - **Repetition detection uses exact/near-exact matching.** It compares tool name and parsed arguments for equality -- it is not yet argument-similarity aware, so a retry with a trivially different argument (a different page number, a reworded query) won't be caught even though it's the same underlying loop.
-- **Repetition detection only sees back-to-back runs.** An agent bouncing between two calls (`search`, `read_page`, `search`, `read_page`, ...) is a classic stuck loop, but no single call repeats consecutively, so it isn't flagged. Cycle detection is a natural next step.
+- **Alternating loops need the opt-in `cycle` detector.** The default `repetition` detector only sees back-to-back runs of one call, so an agent bouncing between two calls isn't flagged unless you run `--detectors repetition,mismatch,cycle`. `cycle` is exact-match too (same names *and* arguments), and only looks for blocks of up to 4 calls.
 - **Mismatch detection is a first-pass embedding-similarity heuristic**, not a validated classifier. It has not been tuned against a large labeled dataset of real reasoning/action mismatches -- treat a low score as "worth a human look," not "confirmed defect."
 - Both detectors are early and will misfire on trace shapes they haven't seen yet.
 

@@ -19,6 +19,7 @@ def make_args(
     fmt="text",
     mismatch_threshold=0.3,
     repeat_min=2,
+    cycle_repeats=3,
 ):
     return argparse.Namespace(
         trace_paths=[str(p) for p in trace_paths],
@@ -26,6 +27,7 @@ def make_args(
         format=fmt,
         mismatch_threshold=mismatch_threshold,
         repeat_min=repeat_min,
+        cycle_repeats=cycle_repeats,
     )
 
 
@@ -320,3 +322,59 @@ def test_check_help_documents_format_default_and_exit_codes():
     assert "output format (default: text)" in result.stdout
     assert "exit codes:" in result.stdout
     assert "0 clean, 1 findings reported, 2 error" in result.stdout
+
+
+@pytest.fixture
+def ping_pong_trace_path(tmp_path):
+    """search / read_page alternating three times -- no single call repeats."""
+    spans = []
+    for i, (name, arguments) in enumerate([("search", {"q": "paris"}), ("read_page", {"id": 1})] * 3):
+        spans.append({
+            "context": {"span_id": f"s{i}"},
+            "start_time": f"2026-01-01T00:00:{i:02d}Z",
+            "attributes": {
+                "gen_ai.operation.name": "execute_tool",
+                "gen_ai.tool.name": name,
+                "gen_ai.tool.call.arguments": json.dumps(arguments),
+            },
+        })
+    path = tmp_path / "ping_pong.json"
+    path.write_text(json.dumps(spans))
+    return path
+
+
+def test_cycle_detector_flags_ping_pong_trace(ping_pong_trace_path, capsys):
+    args = make_args(ping_pong_trace_path, detectors="cycle")
+    assert _run_check(args) == 1
+    out = capsys.readouterr().out
+    assert "[CYCLE] 'search' -> 'read_page' repeated 3 times (6 calls)" in out
+
+
+def test_ping_pong_is_invisible_to_the_repetition_detector(ping_pong_trace_path):
+    args = make_args(ping_pong_trace_path, detectors="repetition")
+    assert _run_check(args) == 0
+
+
+def test_cycle_is_not_part_of_the_default_detector_set(ping_pong_trace_path):
+    result = _run_cli("check", str(ping_pong_trace_path))
+    assert result.returncode == 0, result.stderr
+    assert "no issues detected" in result.stdout
+
+
+def test_higher_cycle_repeats_clears_a_three_repeat_cycle(ping_pong_trace_path):
+    args = make_args(ping_pong_trace_path, detectors="cycle", cycle_repeats=4)
+    assert _run_check(args) == 0
+
+
+def test_cycle_repeats_below_2_exits_2(ping_pong_trace_path):
+    args = make_args(ping_pong_trace_path, detectors="cycle", cycle_repeats=1)
+    assert _run_check(args) == 2
+
+
+def test_cycle_findings_serialize_to_json(ping_pong_trace_path, capsys):
+    args = make_args(ping_pong_trace_path, detectors="cycle", fmt="json")
+    assert _run_check(args) == 1
+    finding = json.loads(capsys.readouterr().out)["cycle"][0]
+    assert finding["tool_names"] == ["search", "read_page"]
+    assert finding["repeat_count"] == 3
+    assert finding["span_ids"] == [f"s{i}" for i in range(6)]

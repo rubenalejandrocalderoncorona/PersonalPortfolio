@@ -3,6 +3,7 @@ import json
 import sys
 from importlib.metadata import PackageNotFoundError, version
 
+from agent_trace_lint.detectors.cycle import detect_cycle
 from agent_trace_lint.detectors.mismatch import ModelLoadError, detect_mismatch
 from agent_trace_lint.detectors.repetition import detect_repetition
 
@@ -14,7 +15,10 @@ except PackageNotFoundError:
 DETECTORS = {
     "repetition": detect_repetition,
     "mismatch": detect_mismatch,
+    "cycle": detect_cycle,
 }
+
+DEFAULT_DETECTORS = "repetition,mismatch"
 
 
 def _format_span_ids(span_ids):
@@ -40,9 +44,21 @@ def _format_mismatch(finding):
     )
 
 
+def _format_cycle(finding):
+    span_ids = _format_span_ids(finding["span_ids"])
+    sequence = " -> ".join(f"'{name}'" for name in finding["tool_names"])
+    total_calls = len(finding["span_ids"])
+    return (
+        f"  [CYCLE] {sequence} repeated {finding['repeat_count']} times "
+        f"({total_calls} calls)\n"
+        f"          spans: {span_ids}"
+    )
+
+
 FORMATTERS = {
     "repetition": _format_repetition,
     "mismatch": _format_mismatch,
+    "cycle": _format_cycle,
 }
 
 
@@ -98,6 +114,10 @@ def _run_check(args):
         print("error: --repeat-min must be at least 2", file=sys.stderr)
         return 2
 
+    if args.cycle_repeats < 2:
+        print("error: --cycle-repeats must be at least 2", file=sys.stderr)
+        return 2
+
     if not (-1.0 <= args.mismatch_threshold <= 1.0):
         print(
             "error: --mismatch-threshold must be between -1.0 and 1.0 "
@@ -109,6 +129,7 @@ def _run_check(args):
     detector_kwargs = {
         "mismatch": {"threshold": args.mismatch_threshold},
         "repetition": {"n": args.repeat_min},
+        "cycle": {"min_repeats": args.cycle_repeats},
     }
 
     # Worst outcome across files wins: 2 (error) > 1 (findings) > 0 (clean).
@@ -189,8 +210,12 @@ def main():
     )
     check_parser.add_argument(
         "--detectors",
-        default="repetition,mismatch",
-        help="comma-separated list of detectors to run (default: repetition,mismatch)",
+        default=DEFAULT_DETECTORS,
+        help=(
+            f"comma-separated list of detectors to run (default: {DEFAULT_DETECTORS}; "
+            f"available: {', '.join(DETECTORS)} -- cycle is opt-in because a "
+            "legitimate polling loop looks like one)"
+        ),
     )
     check_parser.add_argument(
         "--repeat-min",
@@ -200,6 +225,15 @@ def main():
             "minimum length of a back-to-back identical tool-call run that "
             "counts as a repetition (default: 2) -- raise it if your agent "
             "legitimately retries a call once or twice before moving on"
+        ),
+    )
+    check_parser.add_argument(
+        "--cycle-repeats",
+        type=int,
+        default=3,
+        help=(
+            "how many times a short sequence of calls must repeat back to back "
+            "for the cycle detector to flag it (default: 3, minimum 2)"
         ),
     )
     check_parser.add_argument(
