@@ -57,6 +57,12 @@ If the `agent-trace-lint` script isn't on your `PATH` (some CI images and virtua
 
 Exits `0` if the trace is clean, `1` if findings were reported (so it can gate CI), or `2` on an error (bad path, invalid JSON, unknown or empty `--detectors` list, or the embedding model failing to load) -- so a broken environment is never mistaken for a lint finding.
 
+Rolling this out on an existing agent? Add `--exit-zero` to run in report-only mode: findings are still printed, but the exit code stays `0` so the build doesn't fail while you tune thresholds. Real errors (bad path, invalid JSON, a bad flag value) still exit `2`, so a broken setup can't pass as clean.
+
+```bash
+agent-trace-lint check traces/*.json --exit-zero
+```
+
 Run only specific detectors with `--detectors` (comma-separated, default `repetition,mismatch`):
 
 ```bash

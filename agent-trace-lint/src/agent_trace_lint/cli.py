@@ -175,6 +175,8 @@ def _run_check(args):
                 print(f"== {path} ==")
             _print_report(results)
 
+    if args.exit_zero and exit_code == 1:
+        return 0
     return exit_code
 
 
@@ -190,10 +192,10 @@ def main():
     check_parser = subparsers.add_parser(
         "check",
         epilog=(
-            "exit codes: 0 clean, 1 findings reported, 2 error (bad path, "
-            "invalid JSON, bad flag value, or the embedding model failing "
-            "to load) -- with multiple trace paths, the worst of these "
-            "across all of them."
+            "exit codes: 0 clean, 1 findings reported (0 with --exit-zero), "
+            "2 error (bad path, invalid JSON, bad flag value, or the embedding "
+            "model failing to load) -- with multiple trace paths, the worst "
+            "of these across all of them."
         ),
     )
     check_parser.add_argument(
@@ -215,6 +217,15 @@ def main():
             f"comma-separated list of detectors to run (default: {DEFAULT_DETECTORS}; "
             f"available: {', '.join(DETECTORS)} -- cycle is opt-in because a "
             "legitimate polling loop looks like one)"
+        ),
+    )
+    check_parser.add_argument(
+        "--exit-zero",
+        action="store_true",
+        help=(
+            "exit 0 even when findings are reported (report-only mode, for "
+            "rolling the linter out without failing builds); errors such as a "
+            "bad path or invalid JSON still exit 2"
         ),
     )
     check_parser.add_argument(

@@ -20,6 +20,7 @@ def make_args(
     mismatch_threshold=0.3,
     repeat_min=2,
     cycle_repeats=3,
+    exit_zero=False,
 ):
     return argparse.Namespace(
         trace_paths=[str(p) for p in trace_paths],
@@ -28,6 +29,7 @@ def make_args(
         mismatch_threshold=mismatch_threshold,
         repeat_min=repeat_min,
         cycle_repeats=cycle_repeats,
+        exit_zero=exit_zero,
     )
 
 
@@ -321,7 +323,7 @@ def test_check_help_documents_format_default_and_exit_codes():
     assert result.returncode == 0
     assert "output format (default: text)" in result.stdout
     assert "exit codes:" in result.stdout
-    assert "0 clean, 1 findings reported, 2 error" in result.stdout
+    assert "0 clean, 1 findings reported (0 with --exit-zero), 2 error" in result.stdout
 
 
 @pytest.fixture
@@ -378,3 +380,27 @@ def test_cycle_findings_serialize_to_json(ping_pong_trace_path, capsys):
     assert finding["tool_names"] == ["search", "read_page"]
     assert finding["repeat_count"] == 3
     assert finding["span_ids"] == [f"s{i}" for i in range(6)]
+
+
+def test_exit_zero_turns_findings_into_exit_0(capsys):
+    args = make_args(SAMPLE_TRACE_PATH, detectors="repetition", exit_zero=True)
+    assert _run_check(args) == 0
+    assert "REPEAT" in capsys.readouterr().out
+
+
+def test_exit_zero_still_reports_errors_as_exit_2(tmp_path):
+    args = make_args(tmp_path / "missing.json", detectors="repetition", exit_zero=True)
+    assert _run_check(args) == 2
+
+
+def test_exit_zero_does_not_mask_an_error_among_findings(clean_trace_path, tmp_path):
+    args = make_args(
+        SAMPLE_TRACE_PATH, tmp_path / "missing.json", detectors="repetition", exit_zero=True
+    )
+    assert _run_check(args) == 2
+
+
+def test_exit_zero_flag_via_the_real_cli():
+    result = _run_cli("check", str(SAMPLE_TRACE_PATH), "--detectors", "repetition", "--exit-zero")
+    assert result.returncode == 0, result.stderr
+    assert "REPEAT" in result.stdout
