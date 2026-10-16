@@ -13,7 +13,12 @@ on:
 
 jobs:
   test:
+    name: test (py${{ matrix.python-version }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
     defaults:
       run:
         working-directory: agent-trace-lint
@@ -22,9 +27,7 @@ jobs:
 
       - uses: actions/setup-python@v5
         with:
-          # Single version for now -- pyproject.toml declares support down to
-          # 3.10, but this doesn't matrix-test that yet.
-          python-version: "3.11"
+          python-version: ${{ matrix.python-version }}
           cache: "pip"
           cache-dependency-path: agent-trace-lint/pyproject.toml
 
