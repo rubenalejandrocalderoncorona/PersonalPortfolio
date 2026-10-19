@@ -412,3 +412,65 @@ def test_json_object_that_is_not_a_trace_exits_2_instead_of_reporting_clean(tmp_
     args = make_args(path, detectors="repetition")
     assert _run_check(args) == 2
     assert "unrecognized trace format" in capsys.readouterr().err
+
+
+def otlp_tool_span(span_id, nanos, tool_name, arguments):
+    def attr(key, value):
+        return {"key": key, "value": {"stringValue": value}}
+
+    return {
+        "spanId": span_id,
+        "startTimeUnixNano": str(nanos),
+        "attributes": [
+            attr("gen_ai.operation.name", "execute_tool"),
+            attr("gen_ai.tool.name", tool_name),
+            attr("gen_ai.tool.call.arguments", json.dumps(arguments)),
+        ],
+    }
+
+
+@pytest.fixture
+def otlp_repeat_export():
+    spans = [
+        otlp_tool_span("o1", 1_000, "get_weather", {"city": "Paris"}),
+        otlp_tool_span("o2", 2_000, "get_weather", {"city": "Paris"}),
+    ]
+    return {"resourceSpans": [{"scopeSpans": [{"spans": spans}]}]}
+
+
+def test_otlp_json_file_is_checked_instead_of_reporting_clean(tmp_path, otlp_repeat_export, capsys):
+    path = tmp_path / "otlp.json"
+    path.write_text(json.dumps(otlp_repeat_export))
+
+    assert _run_check(make_args(path, detectors="repetition")) == 1
+    out = capsys.readouterr().out
+    assert "[REPEAT] 'get_weather' called 2 times in a row" in out
+    assert "o1, o2" in out
+
+
+def test_otlp_jsonl_file_one_export_per_line(tmp_path, otlp_repeat_export, capsys):
+    path = tmp_path / "otlp.jsonl"
+    path.write_text(json.dumps(otlp_repeat_export) + "\n" + json.dumps({"resourceSpans": []}) + "\n")
+
+    assert _run_check(make_args(path, detectors="repetition")) == 1
+    assert "o1, o2" in capsys.readouterr().out
+
+
+def test_otlp_from_stdin(monkeypatch, otlp_repeat_export):
+    monkeypatch.setattr(sys, "stdin", io.StringIO(json.dumps(otlp_repeat_export)))
+    assert _run_check(make_args("-", detectors="repetition")) == 1
+
+
+def test_broken_jsonl_still_reports_invalid_json(tmp_path, capsys):
+    path = tmp_path / "broken.jsonl"
+    path.write_text("{not valid\n{also: bad}\n")
+
+    assert _run_check(make_args(path, detectors="repetition")) == 2
+    assert "invalid JSON" in capsys.readouterr().err
+
+
+def test_json_lines_that_are_not_all_objects_are_not_guessed_at(tmp_path):
+    path = tmp_path / "mixed.jsonl"
+    path.write_text('{"resourceSpans": []}\n[1, 2]\n')
+
+    assert _run_check(make_args(path, detectors="repetition")) == 2

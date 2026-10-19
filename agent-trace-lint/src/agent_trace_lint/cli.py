@@ -76,13 +76,35 @@ def _print_report(results):
             print()
 
 
+def _parse_json_or_lines(text):
+    """Parse one JSON document, or newline-delimited JSON objects.
+
+    The OpenTelemetry Collector's file exporter writes one OTLP export per
+    line (.jsonl), which isn't a single valid JSON document. If the whole
+    text fails to parse but every non-empty line is a JSON object, return
+    those objects as a list; otherwise re-raise the original error.
+    """
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError as original:
+        lines = [line for line in text.splitlines() if line.strip()]
+        if len(lines) > 1:
+            try:
+                records = [json.loads(line) for line in lines]
+            except json.JSONDecodeError:
+                raise original from None
+            if all(isinstance(r, dict) for r in records):
+                return records
+        raise
+
+
 def _load_trace(path):
     """Return (trace, None) on success or (None, error message) on failure."""
     try:
         if path == "-":
-            return json.load(sys.stdin), None
+            return _parse_json_or_lines(sys.stdin.read()), None
         with open(path) as f:
-            return json.load(f), None
+            return _parse_json_or_lines(f.read()), None
     except FileNotFoundError:
         return None, f"trace file not found: {path}"
     except OSError as exc:

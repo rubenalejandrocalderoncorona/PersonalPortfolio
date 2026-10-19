@@ -55,7 +55,7 @@ found 2 issue(s):
 
 If the `agent-trace-lint` script isn't on your `PATH` (some CI images and virtualenvs), `python -m agent_trace_lint check ...` runs the same CLI.
 
-Exits `0` if the trace is clean, `1` if findings were reported (so it can gate CI), or `2` on an error (bad path, invalid JSON, unknown or empty `--detectors` list, or the embedding model failing to load) -- so a broken environment is never mistaken for a lint finding.
+Exits `0` if the trace is clean, `1` if findings were reported (so it can gate CI), or `2` on an error (bad path, invalid JSON, an unrecognized trace format, unknown or empty `--detectors` list, or the embedding model failing to load) -- so a broken environment is never mistaken for a lint finding.
 
 Rolling this out on an existing agent? Add `--exit-zero` to run in report-only mode: findings are still printed, but the exit code stays `0` so the build doesn't fail while you tune thresholds. Real errors (bad path, invalid JSON, a bad flag value) still exit `2`, so a broken setup can't pass as clean.
 
@@ -138,6 +138,13 @@ agent-trace-lint check traces/sample_trace.json --format json
 ```
 
 Note: the mismatch detector downloads its embedding model from Hugging Face on first use (cached locally after that) -- the first run needs network access, later runs don't. If that first download fails, the CLI exits `2` with a clear message; pass `--detectors repetition` to run without the model.
+
+## Supported trace formats
+
+- **OpenTelemetry Python SDK JSON** -- what `span.to_json()` produces (see `scripts/generate_sample_trace.py`): a JSON array of spans, or an object with a `spans` array.
+- **OTLP/JSON** -- what the OpenTelemetry Collector's file exporter writes: a `resourceSpans` document, or newline-delimited `.jsonl` with one export per line. Typed attribute values (`stringValue`, `intValue`, `arrayValue`, ...) are decoded for you.
+
+Anything else -- a JSON object with none of those keys, say -- exits `2` with an `unrecognized trace format` error naming the keys it found, rather than reporting a clean trace it never actually read.
 
 ## Limitations
 
