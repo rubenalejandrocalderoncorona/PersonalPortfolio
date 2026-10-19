@@ -12,6 +12,8 @@ not "confirmed mismatch" -- treat it as a heuristic, not a verdict.
 import json
 from itertools import zip_longest
 
+from agent_trace_lint.spans import extract_spans
+
 _MODEL_NAME = "all-MiniLM-L6-v2"
 _model = None
 
@@ -50,14 +52,6 @@ def _cosine_similarity(a, b):
     if denom == 0:
         return 0.0
     return float(np.dot(a, b) / denom)
-
-
-def _extract_spans(trace):
-    if isinstance(trace, list):
-        return trace
-    if isinstance(trace, dict):
-        return trace.get("spans", [])
-    raise TypeError(f"Unsupported trace type: {type(trace)!r}")
 
 
 def _parse_json(raw):
@@ -130,7 +124,7 @@ def detect_mismatch(trace, threshold: float = 0.3) -> list:
     This is a heuristic, not a verdict -- see HEURISTIC_NOTE / each
     finding's "note" field.
     """
-    pairs = _reasoning_tool_pairs(_extract_spans(trace))
+    pairs = _reasoning_tool_pairs(extract_spans(trace))
     if not pairs:
         return []
 

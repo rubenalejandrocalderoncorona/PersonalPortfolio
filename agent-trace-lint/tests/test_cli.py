@@ -404,3 +404,11 @@ def test_exit_zero_flag_via_the_real_cli():
     result = _run_cli("check", str(SAMPLE_TRACE_PATH), "--detectors", "repetition", "--exit-zero")
     assert result.returncode == 0, result.stderr
     assert "REPEAT" in result.stdout
+
+
+def test_json_object_that_is_not_a_trace_exits_2_instead_of_reporting_clean(tmp_path, capsys):
+    path = tmp_path / "not_a_trace.json"
+    path.write_text(json.dumps({"completely": "unrelated"}))
+    args = make_args(path, detectors="repetition")
+    assert _run_check(args) == 2
+    assert "unrecognized trace format" in capsys.readouterr().err

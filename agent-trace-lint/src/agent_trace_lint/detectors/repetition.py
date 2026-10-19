@@ -5,13 +5,7 @@ back, which is a common signature of a stuck agent loop.
 """
 import json
 
-
-def _extract_spans(trace):
-    if isinstance(trace, list):
-        return trace
-    if isinstance(trace, dict):
-        return trace.get("spans", [])
-    raise TypeError(f"Unsupported trace type: {type(trace)!r}")
+from agent_trace_lint.spans import extract_spans
 
 
 def _parse_arguments(raw):
@@ -63,7 +57,7 @@ def detect_repetition(trace, n: int = 2) -> list:
     if n < 2:
         raise ValueError(f"n must be at least 2, got {n}")
 
-    calls = _tool_calls_in_order(_extract_spans(trace))
+    calls = _tool_calls_in_order(extract_spans(trace))
 
     findings = []
     i = 0

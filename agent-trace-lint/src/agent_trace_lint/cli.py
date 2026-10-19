@@ -6,6 +6,7 @@ from importlib.metadata import PackageNotFoundError, version
 from agent_trace_lint.detectors.cycle import detect_cycle
 from agent_trace_lint.detectors.mismatch import ModelLoadError, detect_mismatch
 from agent_trace_lint.detectors.repetition import detect_repetition
+from agent_trace_lint.spans import TraceFormatError
 
 try:
     __version__ = version("agent-trace-lint")
@@ -154,7 +155,7 @@ def _run_check(args):
                 file=sys.stderr,
             )
             return 2
-        except (TypeError, AttributeError) as exc:
+        except (TraceFormatError, TypeError, AttributeError) as exc:
             print(f"error: malformed trace in {source}: {exc}", file=sys.stderr)
             exit_code = 2
             continue

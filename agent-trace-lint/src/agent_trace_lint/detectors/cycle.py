@@ -11,7 +11,8 @@ sleep, ...) has exactly this shape. A hit means "worth a human look", and
 """
 import json
 
-from agent_trace_lint.detectors.repetition import _extract_spans, _tool_calls_in_order
+from agent_trace_lint.detectors.repetition import _tool_calls_in_order
+from agent_trace_lint.spans import extract_spans
 
 
 def _call_key(call):
@@ -48,7 +49,7 @@ def detect_cycle(trace, min_repeats: int = 3, max_period: int = 4) -> list:
     if max_period < 2:
         raise ValueError(f"max_period must be at least 2, got {max_period}")
 
-    calls = _tool_calls_in_order(_extract_spans(trace))
+    calls = _tool_calls_in_order(extract_spans(trace))
     keys = [_call_key(c) for c in calls]
 
     findings = []
