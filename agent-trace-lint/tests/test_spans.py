@@ -55,6 +55,7 @@ def otlp_export(*spans, scope_key="scopeSpans"):
 
 def test_otlp_spans_are_normalized_to_the_flat_shape():
     export = otlp_export({
+        "traceId": "trace-1",
         "spanId": "abc123",
         "name": "execute_tool get_weather",
         "startTimeUnixNano": "1700000000000000000",
@@ -63,7 +64,7 @@ def test_otlp_spans_are_normalized_to_the_flat_shape():
 
     (span,) = extract_spans(export)
 
-    assert span["context"] == {"span_id": "abc123"}
+    assert span["context"] == {"span_id": "abc123", "trace_id": "trace-1"}
     assert span["name"] == "execute_tool get_weather"
     assert span["attributes"] == {"gen_ai.tool.name": "get_weather"}
 

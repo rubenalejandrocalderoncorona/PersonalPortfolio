@@ -474,3 +474,17 @@ def test_json_lines_that_are_not_all_objects_are_not_guessed_at(tmp_path):
     path.write_text('{"resourceSpans": []}\n[1, 2]\n')
 
     assert _run_check(make_args(path, detectors="repetition")) == 2
+
+
+def test_otlp_export_with_two_traces_does_not_mix_them_up(tmp_path):
+    def with_trace(span, trace_id):
+        return {**span, "traceId": trace_id}
+
+    spans = [
+        with_trace(otlp_tool_span("o1", 1_000, "get_weather", {"city": "Paris"}), "trace-A"),
+        with_trace(otlp_tool_span("o2", 2_000, "get_weather", {"city": "Paris"}), "trace-B"),
+    ]
+    path = tmp_path / "two_traces.json"
+    path.write_text(json.dumps({"resourceSpans": [{"scopeSpans": [{"spans": spans}]}]}))
+
+    assert _run_check(make_args(path, detectors="repetition,cycle")) == 0

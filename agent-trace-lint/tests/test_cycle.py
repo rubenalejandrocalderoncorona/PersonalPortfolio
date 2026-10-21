@@ -108,3 +108,37 @@ def test_min_repeats_below_two_is_rejected(min_repeats):
 def test_max_period_below_two_is_rejected():
     with pytest.raises(ValueError, match="max_period"):
         detect_cycle(make_trace("ABABAB"), max_period=1)
+
+
+def make_traced_trace(pattern, trace_id, start=0):
+    spans = []
+    for i, letter in enumerate(pattern):
+        span = make_tool_span(start + i, *ARGS[letter])
+        span["context"]["trace_id"] = trace_id
+        spans.append(span)
+    return spans
+
+
+def test_alternating_calls_split_across_two_traces_are_not_a_cycle():
+    """Interleaved in time this reads A B A B A B, but A is one trace
+    repeating a single call and B is another -- neither is a cycle."""
+    spans = []
+    for i in range(6):
+        trace_id, letter = ("trace-A", "A") if i % 2 == 0 else ("trace-B", "B")
+        span = make_tool_span(i, *ARGS[letter])
+        span["context"]["trace_id"] = trace_id
+        spans.append(span)
+
+    assert detect_cycle(spans) == []
+
+
+def test_cycle_within_one_trace_is_found_amid_another_traces_calls():
+    ping_pong = make_traced_trace("ABABAB", "trace-A", start=0)
+    noise = make_traced_trace("X", "trace-B", start=20)
+    noise[0]["start_time"] = "2026-01-01T00:00:02Z"  # lands in the middle of the cycle
+
+    findings = detect_cycle(ping_pong + noise)
+
+    assert len(findings) == 1
+    assert findings[0]["repeat_count"] == 3
+    assert findings[0]["span_ids"] == [f"s{i}" for i in range(6)]

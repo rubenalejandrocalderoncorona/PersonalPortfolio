@@ -54,7 +54,7 @@ def _normalize_otlp_span(span):
     start = span.get("startTimeUnixNano")
     return {
         "name": span.get("name"),
-        "context": {"span_id": span.get("spanId")},
+        "context": {"span_id": span.get("spanId"), "trace_id": span.get("traceId")},
         # Zero-padded so nanosecond timestamps of differing widths still sort
         # correctly as strings, matching how ISO timestamps are compared.
         "start_time": str(int(start)).zfill(20) if start not in (None, "") else "",

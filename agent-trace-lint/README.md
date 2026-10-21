@@ -21,6 +21,8 @@ Two detectors run by default:
 - **repetition** -- flags a tool called with the same name and arguments back to back, the signature of a stuck agent loop.
 - **mismatch** -- flags a step where the model's stated reasoning looks unrelated to the tool it then calls, using offline sentence-embedding similarity as a first-pass heuristic.
 
+Calls are only compared within the same `trace_id`, so a file holding many traces (a Collector export usually does) never mistakes two different requests for a loop, and a real loop isn't hidden by another trace's call landing in between. Spans with no `trace_id` are treated as one trace.
+
 A third detector is available but opt-in (`--detectors repetition,mismatch,cycle`):
 
 - **cycle** -- flags a short sequence of calls that repeats back to back (`search`, `read_page`, `search`, `read_page`, ...), the alternating loop the repetition detector can't see because no single call repeats. It's opt-in because a legitimate polling loop (`check_status`, `wait`, `check_status`, ...) has the same shape.

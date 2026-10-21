@@ -11,7 +11,7 @@ sleep, ...) has exactly this shape. A hit means "worth a human look", and
 """
 import json
 
-from agent_trace_lint.detectors.repetition import _tool_calls_in_order
+from agent_trace_lint.detectors.repetition import _by_trace, _tool_calls_in_order
 from agent_trace_lint.spans import extract_spans
 
 
@@ -28,31 +28,11 @@ def _is_primitive(block):
     return True
 
 
-def detect_cycle(trace, min_repeats: int = 3, max_period: int = 4) -> list:
-    """Find a block of 2..`max_period` tool calls repeated back to back.
-
-    A block counts once it repeats `min_repeats` times in a row (so with
-    the default of 3, search/read_page/search/read_page/search/read_page is
-    flagged but a single search/read_page/search/read_page is not). Blocks
-    that are really a smaller block repeated -- including a single call
-    repeated, which is detect_repetition()'s job -- are not reported here.
-
-    Returns a list of findings, each: {tool_names, arguments, repeat_count,
-    span_ids}, ordered by where the run starts in the trace. `tool_names`
-    and `arguments` list one entry per call in the cycle; `span_ids` covers
-    every call in the run.
-
-    Raises ValueError if `min_repeats` is below 2 or `max_period` is below 2.
-    """
-    if min_repeats < 2:
-        raise ValueError(f"min_repeats must be at least 2, got {min_repeats}")
-    if max_period < 2:
-        raise ValueError(f"max_period must be at least 2, got {max_period}")
-
-    calls = _tool_calls_in_order(extract_spans(trace))
+def _find_cycles(calls, min_repeats, max_period):
+    """Return (start_time, finding) for each repeated block in `calls`."""
     keys = [_call_key(c) for c in calls]
 
-    findings = []
+    found = []
     i = 0
     while i < len(calls):
         match = None
@@ -73,11 +53,41 @@ def detect_cycle(trace, min_repeats: int = 3, max_period: int = 4) -> list:
 
         period, repeats = match
         end = i + period * repeats
-        findings.append({
+        found.append((calls[i]["start_time"], {
             "tool_names": [c["tool_name"] for c in calls[i:i + period]],
             "arguments": [c["arguments"] for c in calls[i:i + period]],
             "repeat_count": repeats,
             "span_ids": [c["span_id"] for c in calls[i:end]],
-        })
+        }))
         i = end
-    return findings
+    return found
+
+
+def detect_cycle(trace, min_repeats: int = 3, max_period: int = 4) -> list:
+    """Find a block of 2..`max_period` tool calls repeated back to back.
+
+    A block counts once it repeats `min_repeats` times in a row (so with
+    the default of 3, search/read_page/search/read_page/search/read_page is
+    flagged but a single search/read_page/search/read_page is not). Blocks
+    that are really a smaller block repeated -- including a single call
+    repeated, which is detect_repetition()'s job -- are not reported here.
+
+    Returns a list of findings, each: {tool_names, arguments, repeat_count,
+    span_ids}, ordered by where the run starts. Cycles are found within each
+    trace_id separately. `tool_names` and `arguments` list one entry per call
+    in the cycle; `span_ids` covers every call in the run.
+
+    Raises ValueError if `min_repeats` is below 2 or `max_period` is below 2.
+    """
+    if min_repeats < 2:
+        raise ValueError(f"min_repeats must be at least 2, got {min_repeats}")
+    if max_period < 2:
+        raise ValueError(f"max_period must be at least 2, got {max_period}")
+
+    calls = _tool_calls_in_order(extract_spans(trace))
+
+    found = []
+    for group in _by_trace(calls):
+        found.extend(_find_cycles(group, min_repeats, max_period))
+    found.sort(key=lambda pair: pair[0])
+    return [finding for _, finding in found]

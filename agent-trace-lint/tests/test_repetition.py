@@ -96,3 +96,45 @@ def test_unrelated_nameless_calls_are_not_flagged_as_repeat():
 def test_run_length_below_two_is_rejected(trace_with_repeat, n):
     with pytest.raises(ValueError, match="at least 2"):
         detect_repetition(trace_with_repeat, n=n)
+
+
+def make_traced_tool_span(span_id, trace_id, tool_name, arguments, start_time):
+    span = make_tool_span(span_id, tool_name, arguments, start_time)
+    span["context"]["trace_id"] = trace_id
+    return span
+
+
+def test_one_call_each_in_two_different_traces_is_not_a_repeat():
+    trace = [
+        make_traced_tool_span("a1", "trace-A", "get_weather", {"city": "Paris"}, "2026-01-01T00:00:01Z"),
+        make_traced_tool_span("b1", "trace-B", "get_weather", {"city": "Paris"}, "2026-01-01T00:00:02Z"),
+    ]
+    assert detect_repetition(trace) == []
+
+
+def test_repeat_within_a_trace_is_found_despite_another_traces_call_in_between():
+    trace = [
+        make_traced_tool_span("a1", "trace-A", "get_weather", {"city": "Paris"}, "2026-01-01T00:00:01Z"),
+        make_traced_tool_span("b1", "trace-B", "search", {"q": "x"}, "2026-01-01T00:00:02Z"),
+        make_traced_tool_span("a2", "trace-A", "get_weather", {"city": "Paris"}, "2026-01-01T00:00:03Z"),
+    ]
+    findings = detect_repetition(trace)
+
+    assert len(findings) == 1
+    assert findings[0]["span_ids"] == ["a1", "a2"]
+
+
+def test_findings_from_different_traces_are_ordered_by_start_time():
+    trace = [
+        make_traced_tool_span("a1", "trace-A", "get_weather", {"city": "Paris"}, "2026-01-01T00:00:05Z"),
+        make_traced_tool_span("a2", "trace-A", "get_weather", {"city": "Paris"}, "2026-01-01T00:00:06Z"),
+        make_traced_tool_span("b1", "trace-B", "search", {"q": "x"}, "2026-01-01T00:00:01Z"),
+        make_traced_tool_span("b2", "trace-B", "search", {"q": "x"}, "2026-01-01T00:00:02Z"),
+    ]
+    findings = detect_repetition(trace)
+
+    assert [f["tool_name"] for f in findings] == ["search", "get_weather"]
+
+
+def test_calls_without_a_trace_id_are_still_treated_as_one_trace(trace_with_repeat):
+    assert len(detect_repetition(trace_with_repeat)) == 1
