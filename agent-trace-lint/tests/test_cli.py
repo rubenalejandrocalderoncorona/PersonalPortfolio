@@ -488,3 +488,33 @@ def test_otlp_export_with_two_traces_does_not_mix_them_up(tmp_path):
     path.write_text(json.dumps({"resourceSpans": [{"scopeSpans": [{"spans": spans}]}]}))
 
     assert _run_check(make_args(path, detectors="repetition,cycle")) == 0
+
+
+def test_text_report_shows_the_trace_when_there_is_one(capsys):
+    assert _run_check(make_args(SAMPLE_TRACE_PATH, detectors="repetition")) == 1
+    assert "trace: 0xe19c31b24d35bc69288cdd8be47a9fdb" in capsys.readouterr().out
+
+
+def test_text_report_omits_the_trace_line_when_spans_have_no_trace_id(tmp_path, capsys):
+    def tool_span(start_time):
+        return {
+            "context": {"span_id": "s"},
+            "attributes": {
+                "gen_ai.operation.name": "execute_tool",
+                "gen_ai.tool.name": "get_weather",
+                "gen_ai.tool.call.arguments": json.dumps({"city": "Paris"}),
+            },
+            "start_time": start_time,
+        }
+
+    path = tmp_path / "trace.json"
+    path.write_text(json.dumps([tool_span("2026-01-01T00:00:00Z"), tool_span("2026-01-01T00:00:01Z")]))
+
+    assert _run_check(make_args(path, detectors="repetition")) == 1
+    assert "trace:" not in capsys.readouterr().out
+
+
+def test_json_findings_include_trace_id(capsys):
+    assert _run_check(make_args(SAMPLE_TRACE_PATH, detectors="repetition", fmt="json")) == 1
+    finding = json.loads(capsys.readouterr().out)["repetition"][0]
+    assert finding["trace_id"] == "0xe19c31b24d35bc69288cdd8be47a9fdb"

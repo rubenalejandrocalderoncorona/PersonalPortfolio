@@ -47,10 +47,12 @@ agent-trace-lint check traces/sample_trace.json
 found 2 issue(s):
 
   [REPEAT] 'get_weather' called 2 times in a row
+           trace: 0xe19c31b24d35bc69288cdd8be47a9fdb
            spans: 0x3b53978b5fa5e455, 0x0ff8844d1bb1c7e1
 
   [MISMATCH] 'search_database' looks unrelated to its stated reasoning (score: 0.0291)
            reasoning: 'The weather looks good, I think I am done here and do not need to do anything else.'
+           trace: 0xe19c31b24d35bc69288cdd8be47a9fdb
            spans: 0xbc51ad1e718c30b9
            note: Score is cosine similarity from a general-purpose sentence embedding model (all-MiniLM-L6-v2), used as a first-pass heuristic only -- it has not been tuned or validated against a labeled dataset of real reasoning/action mismatches. Treat low scores as worth a human look, not as a confirmed mismatch.
 ```
@@ -110,7 +112,7 @@ Pass `-` as the trace path to read from stdin instead of a file (it can't be com
 your-agent-runner --export-trace | agent-trace-lint check -
 ```
 
-Use `--format json` for machine-readable output, grouped by detector:
+Use `--format json` for machine-readable output, grouped by detector. Each finding carries the `trace_id` it came from (`null` if the spans have none), which is how you locate it in a file holding many traces:
 
 ```bash
 agent-trace-lint check traces/sample_trace.json --format json
@@ -123,7 +125,8 @@ agent-trace-lint check traces/sample_trace.json --format json
       "tool_name": "get_weather",
       "repeat_count": 2,
       "arguments": { "city": "Paris" },
-      "span_ids": ["0x3b53978b5fa5e455", "0x0ff8844d1bb1c7e1"]
+      "span_ids": ["0x3b53978b5fa5e455", "0x0ff8844d1bb1c7e1"],
+      "trace_id": "0xe19c31b24d35bc69288cdd8be47a9fdb"
     }
   ],
   "mismatch": [
@@ -131,6 +134,7 @@ agent-trace-lint check traces/sample_trace.json --format json
       "tool_name": "search_database",
       "arguments": { "query": "Paris travel advisories" },
       "span_ids": ["0xbc51ad1e718c30b9"],
+      "trace_id": "0xe19c31b24d35bc69288cdd8be47a9fdb",
       "reasoning": "The weather looks good, I think I am done here and do not need to do anything else.",
       "score": 0.0291,
       "note": "Score is cosine similarity from a general-purpose sentence embedding model (all-MiniLM-L6-v2), used as a first-pass heuristic only -- it has not been tuned or validated against a labeled dataset of real reasoning/action mismatches. Treat low scores as worth a human look, not as a confirmed mismatch."

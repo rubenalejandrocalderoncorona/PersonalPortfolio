@@ -94,7 +94,8 @@ def _reasoning_tool_pairs(spans):
         tool_args = _as_list(attributes.get("gen_ai.response.tool_call_arguments"))
         if not reasoning or not tool_names:
             continue
-        span_id = (span.get("context") or {}).get("span_id")
+        context = span.get("context") or {}
+        span_id = context.get("span_id")
         for name, args_raw in zip_longest(tool_names, tool_args):
             if not name:
                 # Malformed/partial instrumentation -- a finding blaming a
@@ -102,6 +103,7 @@ def _reasoning_tool_pairs(spans):
                 continue
             pairs.append({
                 "span_id": span_id,
+                "trace_id": context.get("trace_id"),
                 "reasoning": reasoning,
                 "tool_name": name,
                 "arguments": _parse_json(args_raw),
@@ -119,7 +121,8 @@ def detect_mismatch(trace, threshold: float = 0.3) -> list:
     below `threshold` are flagged.
 
     Returns a list of findings shaped like detect_repetition()'s: each has
-    tool_name, arguments, and span_ids, plus reasoning, score, and note.
+    tool_name, arguments, span_ids, and trace_id, plus reasoning, score, and
+    note.
 
     This is a heuristic, not a verdict -- see HEURISTIC_NOTE / each
     finding's "note" field.
@@ -140,6 +143,7 @@ def detect_mismatch(trace, threshold: float = 0.3) -> list:
                 "tool_name": pair["tool_name"],
                 "arguments": pair["arguments"],
                 "span_ids": [pair["span_id"]],
+                "trace_id": pair["trace_id"],
                 "reasoning": pair["reasoning"],
                 "score": round(score, 4),
                 "note": HEURISTIC_NOTE,

@@ -26,10 +26,18 @@ def _format_span_ids(span_ids):
     return ", ".join("<unknown>" if sid is None else str(sid) for sid in span_ids)
 
 
+def _trace_line(finding, indent):
+    """A "trace: <id>" line (with trailing newline), or "" if there's no trace_id."""
+    if finding.get("trace_id") is None:
+        return ""
+    return f"{' ' * indent}trace: {finding['trace_id']}\n"
+
+
 def _format_repetition(finding):
     span_ids = _format_span_ids(finding["span_ids"])
     return (
         f"  [REPEAT] '{finding['tool_name']}' called {finding['repeat_count']} times in a row\n"
+        f"{_trace_line(finding, 11)}"
         f"           spans: {span_ids}"
     )
 
@@ -40,6 +48,7 @@ def _format_mismatch(finding):
         f"  [MISMATCH] '{finding['tool_name']}' looks unrelated to its stated reasoning "
         f"(score: {finding['score']})\n"
         f"           reasoning: {finding['reasoning']!r}\n"
+        f"{_trace_line(finding, 11)}"
         f"           spans: {span_ids}\n"
         f"           note: {finding['note']}"
     )
@@ -52,6 +61,7 @@ def _format_cycle(finding):
     return (
         f"  [CYCLE] {sequence} repeated {finding['repeat_count']} times "
         f"({total_calls} calls)\n"
+        f"{_trace_line(finding, 10)}"
         f"          spans: {span_ids}"
     )
 

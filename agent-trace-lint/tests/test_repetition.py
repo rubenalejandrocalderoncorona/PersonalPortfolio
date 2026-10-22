@@ -138,3 +138,15 @@ def test_findings_from_different_traces_are_ordered_by_start_time():
 
 def test_calls_without_a_trace_id_are_still_treated_as_one_trace(trace_with_repeat):
     assert len(detect_repetition(trace_with_repeat)) == 1
+
+
+def test_finding_reports_the_trace_it_came_from():
+    trace = [
+        make_traced_tool_span("a1", "trace-A", "get_weather", {"city": "Paris"}, "2026-01-01T00:00:01Z"),
+        make_traced_tool_span("a2", "trace-A", "get_weather", {"city": "Paris"}, "2026-01-01T00:00:02Z"),
+    ]
+    assert detect_repetition(trace)[0]["trace_id"] == "trace-A"
+
+
+def test_finding_trace_id_is_none_when_the_spans_have_none(trace_with_repeat):
+    assert detect_repetition(trace_with_repeat)[0]["trace_id"] is None

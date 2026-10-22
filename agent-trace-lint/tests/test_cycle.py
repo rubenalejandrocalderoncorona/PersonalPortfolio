@@ -142,3 +142,12 @@ def test_cycle_within_one_trace_is_found_amid_another_traces_calls():
     assert len(findings) == 1
     assert findings[0]["repeat_count"] == 3
     assert findings[0]["span_ids"] == [f"s{i}" for i in range(6)]
+
+
+def test_finding_reports_the_trace_it_came_from():
+    findings = detect_cycle(make_traced_trace("ABABAB", "trace-A"))
+    assert findings[0]["trace_id"] == "trace-A"
+
+
+def test_finding_trace_id_is_none_when_the_spans_have_none():
+    assert detect_cycle(make_trace("ABABAB"))[0]["trace_id"] is None

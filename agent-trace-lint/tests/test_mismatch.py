@@ -110,3 +110,20 @@ def test_scalar_tool_call_attributes_are_not_split_into_characters():
     assert len(pairs) == 1
     assert pairs[0]["tool_name"] == "get_weather"
     assert pairs[0]["arguments"] == {"city": "Paris"}
+
+
+def test_pairs_carry_the_spans_trace_id():
+    span = make_chat_attributes_span(["get_weather"], ['{"city": "Paris"}'])
+    span["context"]["trace_id"] = "trace-A"
+
+    (pair,) = _reasoning_tool_pairs([span])
+
+    assert pair["trace_id"] == "trace-A"
+
+
+def test_mismatch_finding_reports_the_trace_it_came_from(trace_with_mismatched_reasoning):
+    trace_with_mismatched_reasoning[0]["context"]["trace_id"] = "trace-A"
+
+    (finding,) = detect_mismatch(trace_with_mismatched_reasoning)
+
+    assert finding["trace_id"] == "trace-A"

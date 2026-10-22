@@ -76,6 +76,7 @@ def _find_runs(calls, n):
                 "repeat_count": run_length,
                 "arguments": calls[i]["arguments"],
                 "span_ids": [c["span_id"] for c in calls[i:j]],
+                "trace_id": calls[i]["trace_id"],
             }))
         i = j
     return found
@@ -90,7 +91,7 @@ def detect_repetition(trace, n: int = 2) -> list:
     back-to-back duplicate call, since that's already a wasted round trip.
 
     Returns a list of findings, each: {tool_name, repeat_count, arguments,
-    span_ids}, ordered by where the run starts. Runs are found within each
+    span_ids, trace_id}, ordered by where the run starts. Runs are found within each
     trace_id separately, so calls from different traces never count as
     repeats of each other.
 
