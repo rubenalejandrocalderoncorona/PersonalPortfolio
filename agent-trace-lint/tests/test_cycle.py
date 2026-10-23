@@ -151,3 +151,18 @@ def test_finding_reports_the_trace_it_came_from():
 
 def test_finding_trace_id_is_none_when_the_spans_have_none():
     assert detect_cycle(make_trace("ABABAB"))[0]["trace_id"] is None
+
+
+def test_cycle_order_survives_mixed_fractional_and_whole_second_timestamps():
+    """A lands on each whole second and B half a second later. As strings
+    "00.5Z" < "00Z", so the old sort saw B A B A B A and reported the cycle
+    starting with the wrong call."""
+    spans = [make_tool_span(i, *ARGS[letter]) for i, letter in enumerate("ABABAB")]
+    for i, span in enumerate(spans):
+        span["start_time"] = f"2026-01-01T00:00:0{i // 2}.5Z" if i % 2 else f"2026-01-01T00:00:0{i // 2}Z"
+
+    findings = detect_cycle(spans)
+
+    assert len(findings) == 1
+    assert findings[0]["tool_names"] == ["search", "read_page"]
+    assert findings[0]["span_ids"] == [f"s{i}" for i in range(6)]

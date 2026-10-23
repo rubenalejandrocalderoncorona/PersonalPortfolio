@@ -1,6 +1,6 @@
 import pytest
 
-from agent_trace_lint.spans import TraceFormatError, extract_spans
+from agent_trace_lint.spans import TraceFormatError, extract_spans, start_time_key
 
 
 def test_list_of_spans_is_returned_as_is():
@@ -132,3 +132,35 @@ def test_list_of_otlp_exports_is_flattened_like_a_jsonl_file():
 def test_otlp_resource_spans_must_be_a_list():
     with pytest.raises(TraceFormatError, match="'resourceSpans' must be a list"):
         extract_spans({"resourceSpans": "nope"})
+
+
+def test_fractional_seconds_sort_after_the_whole_second_not_before_it():
+    # As plain strings "...01.5Z" < "...01Z" because "." < "Z".
+    assert start_time_key("2026-01-01T00:00:01Z") < start_time_key("2026-01-01T00:00:01.5Z")
+
+
+def test_fractional_widths_are_compared_by_value():
+    assert start_time_key("2026-01-01T00:00:01.123Z") == start_time_key("2026-01-01T00:00:01.123000Z")
+    assert start_time_key("2026-01-01T00:00:01.9Z") < start_time_key("2026-01-01T00:00:02Z")
+
+
+def test_offsets_are_converted_not_compared_as_text():
+    # 02:00+02:00 is 00:00 UTC, which is before 00:30Z although "02" > "00".
+    assert start_time_key("2026-01-01T02:00:00+02:00") < start_time_key("2026-01-01T00:30:00Z")
+    assert start_time_key("2026-01-01T02:00:00+0200") == start_time_key("2026-01-01T00:00:00Z")
+    assert start_time_key("2025-12-31T19:00:00-05:00") == start_time_key("2026-01-01T00:00:00Z")
+
+
+def test_a_time_with_no_offset_is_taken_as_utc():
+    assert start_time_key("2026-01-01T00:00:00") == start_time_key("2026-01-01T00:00:00Z")
+
+
+def test_unix_nanoseconds_compare_with_iso_times():
+    nanos = str(1_767_225_600 * 1_000_000_000 + 500_000_000)  # 2026-01-01T00:00:00.5Z
+    assert start_time_key("2026-01-01T00:00:00Z") < start_time_key(nanos) < start_time_key("2026-01-01T00:00:01Z")
+
+
+@pytest.mark.parametrize("value", [None, "", "yesterday", "2026-13-45T99:99:99Z", 12345, {"x": 1}])
+def test_unparseable_times_sort_first_instead_of_raising(value):
+    assert start_time_key(value) == (0, 0, 0)
+    assert start_time_key(value) < start_time_key("2026-01-01T00:00:00Z")

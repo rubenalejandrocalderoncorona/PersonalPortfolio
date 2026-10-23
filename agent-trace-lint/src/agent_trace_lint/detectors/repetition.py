@@ -5,7 +5,7 @@ back, which is a common signature of a stuck agent loop.
 """
 import json
 
-from agent_trace_lint.spans import extract_spans
+from agent_trace_lint.spans import extract_spans, start_time_key
 
 
 def _parse_arguments(raw):
@@ -37,8 +37,9 @@ def _tool_calls_in_order(spans):
             "tool_name": tool_name,
             "arguments": _parse_arguments(attributes.get("gen_ai.tool.call.arguments")),
             "start_time": span.get("start_time") or "",
+            "start_key": start_time_key(span.get("start_time")),
         })
-    calls.sort(key=lambda c: c["start_time"])
+    calls.sort(key=lambda c: c["start_key"])
     return calls
 
 
@@ -71,7 +72,7 @@ def _find_runs(calls, n):
             j += 1
         run_length = j - i
         if run_length >= n:
-            found.append((calls[i]["start_time"], {
+            found.append((calls[i]["start_key"], {
                 "tool_name": calls[i]["tool_name"],
                 "repeat_count": run_length,
                 "arguments": calls[i]["arguments"],

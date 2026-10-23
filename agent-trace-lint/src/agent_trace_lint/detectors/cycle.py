@@ -53,7 +53,7 @@ def _find_cycles(calls, min_repeats, max_period):
 
         period, repeats = match
         end = i + period * repeats
-        found.append((calls[i]["start_time"], {
+        found.append((calls[i]["start_key"], {
             "tool_names": [c["tool_name"] for c in calls[i:i + period]],
             "arguments": [c["arguments"] for c in calls[i:i + period]],
             "repeat_count": repeats,
@@ -74,8 +74,8 @@ def detect_cycle(trace, min_repeats: int = 3, max_period: int = 4) -> list:
     repeated, which is detect_repetition()'s job -- are not reported here.
 
     Returns a list of findings, each: {tool_names, arguments, repeat_count,
-    span_ids, trace_id}, ordered by where the run starts. Cycles are found within each
-    trace_id separately. `tool_names` and `arguments` list one entry per call
+    span_ids, trace_id}, ordered by where the run starts. Cycles are found
+    within each trace_id separately. `tool_names` and `arguments` list one entry per call
     in the cycle; `span_ids` covers every call in the run.
 
     Raises ValueError if `min_repeats` is below 2 or `max_period` is below 2.

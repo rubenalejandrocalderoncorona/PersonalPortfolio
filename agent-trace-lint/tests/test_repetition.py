@@ -150,3 +150,32 @@ def test_finding_reports_the_trace_it_came_from():
 
 def test_finding_trace_id_is_none_when_the_spans_have_none(trace_with_repeat):
     assert detect_repetition(trace_with_repeat)[0]["trace_id"] is None
+
+
+def test_fractional_second_timestamps_do_not_reorder_calls():
+    """As strings, 01.5Z sorts before 01Z, turning a, b, a into b, a, a --
+    a repeat that never happened."""
+    trace = [
+        make_tool_span("1", "a", {}, "2026-01-01T00:00:01Z"),
+        make_tool_span("2", "b", {}, "2026-01-01T00:00:01.5Z"),
+        make_tool_span("3", "a", {}, "2026-01-01T00:00:02Z"),
+    ]
+    assert detect_repetition(trace) == []
+
+
+def test_a_real_repeat_keeps_its_spans_in_chronological_order():
+    trace = [
+        make_tool_span("1", "a", {}, "2026-01-01T00:00:01Z"),
+        make_tool_span("2", "a", {}, "2026-01-01T00:00:01.5Z"),
+        make_tool_span("3", "b", {}, "2026-01-01T00:00:02Z"),
+    ]
+    assert detect_repetition(trace)[0]["span_ids"] == ["1", "2"]
+
+
+def test_timestamps_in_different_offsets_are_ordered_by_instant():
+    trace = [
+        make_tool_span("1", "a", {}, "2026-01-01T02:00:00+02:00"),  # 00:00Z
+        make_tool_span("2", "b", {}, "2026-01-01T00:30:00Z"),
+        make_tool_span("3", "a", {}, "2026-01-01T00:45:00Z"),
+    ]
+    assert detect_repetition(trace) == []

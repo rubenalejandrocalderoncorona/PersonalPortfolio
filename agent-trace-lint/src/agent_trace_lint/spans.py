@@ -11,6 +11,48 @@ spans are normalized into the flat shape so detectors only see one format.
 """
 
 
+import re
+from datetime import datetime, timedelta, timezone
+
+_ISO_TIME = re.compile(
+    r"^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2}):(\d{2})(?:\.(\d+))?"
+    r"(Z|[+-]\d{2}:?\d{2})?$"
+)
+
+
+def start_time_key(value):
+    """A sortable key for a span start time, so calls order chronologically.
+
+    Plain string comparison gets ISO timestamps wrong ("...01.5Z" sorts
+    before "...01Z" because "." < "Z", and offsets like +02:00 aren't
+    comparable as text). Accepts ISO 8601 (any fractional-second width,
+    "Z" or a numeric offset; no offset means UTC) and unix-epoch
+    nanoseconds as digits, as OTLP uses. Returns (known, seconds, nanos);
+    anything unparseable -- including a missing time -- gets (0, 0, 0), which
+    sorts first and, because sorting is stable, keeps file order.
+    """
+    if isinstance(value, str) and value.isdigit():
+        nanos = int(value)
+        return (1, nanos // 1_000_000_000, nanos % 1_000_000_000)
+
+    match = _ISO_TIME.match(value) if isinstance(value, str) else None
+    if not match:
+        return (0, 0, 0)
+
+    year, month, day, hour, minute, second, fraction, zone = match.groups()
+    try:
+        moment = datetime(int(year), int(month), int(day), int(hour), int(minute), int(second),
+                          tzinfo=timezone.utc)
+    except ValueError:
+        return (0, 0, 0)
+    if zone and zone != "Z":
+        sign = 1 if zone[0] == "+" else -1
+        digits = zone[1:].replace(":", "")
+        moment -= sign * timedelta(hours=int(digits[:2]), minutes=int(digits[2:]))
+    nanos = int((fraction or "0").ljust(9, "0")[:9])
+    return (1, int(moment.timestamp()), nanos)
+
+
 class TraceFormatError(ValueError):
     """The trace is valid JSON but not in a shape agent-trace-lint can read."""
 
