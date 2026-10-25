@@ -73,6 +73,48 @@ FORMATTERS = {
 }
 
 
+def _escape_annotation_data(text):
+    return text.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+
+
+def _escape_annotation_property(text):
+    return _escape_annotation_data(text).replace(":", "%3A").replace(",", "%2C")
+
+
+def _summarize(detector_name, finding):
+    """One line describing a finding, for output with no room for multiple lines."""
+    span_ids = _format_span_ids(finding["span_ids"])
+    if detector_name == "repetition":
+        text = f"'{finding['tool_name']}' called {finding['repeat_count']} times in a row"
+    elif detector_name == "cycle":
+        sequence = " -> ".join(f"'{name}'" for name in finding["tool_names"])
+        text = f"{sequence} repeated {finding['repeat_count']} times ({len(finding['span_ids'])} calls)"
+    else:
+        text = (
+            f"'{finding['tool_name']}' looks unrelated to its stated reasoning "
+            f"(score {finding['score']}): {finding['reasoning']}"
+        )
+    where = f"spans: {span_ids}"
+    if finding.get("trace_id") is not None:
+        where = f"trace: {finding['trace_id']}, {where}"
+    return f"{text} ({where})"
+
+
+def _print_github_annotations(all_results):
+    """Print findings as GitHub Actions workflow commands (::error ...)."""
+    total = 0
+    for path, results in all_results.items():
+        for detector_name, findings in results.items():
+            for finding in findings:
+                total += 1
+                properties = [] if path == "-" else [f"file={_escape_annotation_property(path)}"]
+                properties.append(f"title={_escape_annotation_property('agent-trace-lint: ' + detector_name)}")
+                message = _escape_annotation_data(_summarize(detector_name, finding))
+                print(f"::error {','.join(properties)}::{message}")
+    if total == 0:
+        print("no issues detected")
+
+
 def _print_report(results):
     total = sum(len(findings) for findings in results.values())
     if total == 0:
@@ -196,7 +238,9 @@ def _run_check(args):
         if any(results.values()):
             exit_code = max(exit_code, 1)
 
-    if args.format == "json":
+    if args.format == "github":
+        _print_github_annotations(all_results)
+    elif args.format == "json":
         if len(trace_paths) == 1:
             if all_results:
                 print(json.dumps(all_results[trace_paths[0]], indent=2))
@@ -239,9 +283,12 @@ def main():
     )
     check_parser.add_argument(
         "--format",
-        choices=["text", "json"],
+        choices=["text", "json", "github"],
         default="text",
-        help="output format (default: text)",
+        help=(
+            "output format (default: text); github prints GitHub Actions "
+            "annotations so findings appear on the workflow run and PR checks"
+        ),
     )
     check_parser.add_argument(
         "--detectors",

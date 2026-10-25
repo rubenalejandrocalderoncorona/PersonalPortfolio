@@ -518,3 +518,66 @@ def test_json_findings_include_trace_id(capsys):
     assert _run_check(make_args(SAMPLE_TRACE_PATH, detectors="repetition", fmt="json")) == 1
     finding = json.loads(capsys.readouterr().out)["repetition"][0]
     assert finding["trace_id"] == "0xe19c31b24d35bc69288cdd8be47a9fdb"
+
+
+def test_github_format_emits_one_error_annotation_per_finding(capsys):
+    args = make_args(SAMPLE_TRACE_PATH, detectors="repetition", fmt="github")
+    assert _run_check(args) == 1
+
+    (line,) = capsys.readouterr().out.splitlines()
+    assert line.startswith(f"::error file={SAMPLE_TRACE_PATH},title=agent-trace-lint%3A repetition::")
+    assert "'get_weather' called 2 times in a row" in line
+    assert "spans: 0x3b53978b5fa5e455, 0x0ff8844d1bb1c7e1" in line
+
+
+def test_github_format_names_the_file_for_each_of_several_traces(clean_trace_path, ping_pong_trace_path, capsys):
+    args = make_args(clean_trace_path, SAMPLE_TRACE_PATH, ping_pong_trace_path,
+                     detectors="repetition,cycle", fmt="github")
+    assert _run_check(args) == 1
+
+    lines = capsys.readouterr().out.splitlines()
+    assert len(lines) == 2
+    assert f"file={SAMPLE_TRACE_PATH}," in lines[0]
+    assert f"file={ping_pong_trace_path}," in lines[1] and "agent-trace-lint%3A cycle" in lines[1]
+
+
+def test_github_format_from_stdin_has_no_file_property(monkeypatch, capsys):
+    monkeypatch.setattr(sys, "stdin", io.StringIO(SAMPLE_TRACE_PATH.read_text()))
+    assert _run_check(make_args("-", detectors="repetition", fmt="github")) == 1
+    assert capsys.readouterr().out.startswith("::error title=agent-trace-lint%3A repetition::")
+
+
+def test_github_format_says_so_when_clean(clean_trace_path, capsys):
+    assert _run_check(make_args(clean_trace_path, detectors="repetition", fmt="github")) == 0
+    assert capsys.readouterr().out.strip() == "no issues detected"
+
+
+def test_github_format_with_exit_zero_still_annotates(capsys):
+    args = make_args(SAMPLE_TRACE_PATH, detectors="repetition", fmt="github", exit_zero=True)
+    assert _run_check(args) == 0
+    assert capsys.readouterr().out.startswith("::error ")
+
+
+def test_annotation_escaping_keeps_a_finding_on_one_line():
+    from agent_trace_lint.cli import _escape_annotation_data, _escape_annotation_property
+
+    assert _escape_annotation_data("50% done\r\nnext line") == "50%25 done%0D%0Anext line"
+    # Property values additionally can't contain the ":" and "," delimiters.
+    assert _escape_annotation_property("a,b:c\nd") == "a%2Cb%3Ac%0Ad"
+
+
+def test_mismatch_annotation_includes_score_and_escapes_the_reasoning():
+    from agent_trace_lint.cli import _summarize
+
+    finding = {
+        "tool_name": "search_database",
+        "span_ids": ["s1"],
+        "trace_id": None,
+        "score": 0.0291,
+        "reasoning": "I am done.\nNothing else, 100% sure",
+    }
+    summary = _summarize("mismatch", finding)
+
+    assert "'search_database' looks unrelated to its stated reasoning (score 0.0291)" in summary
+    assert "trace:" not in summary
+    assert summary.endswith("(spans: s1)")

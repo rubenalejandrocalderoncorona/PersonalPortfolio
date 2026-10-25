@@ -106,6 +106,12 @@ agent-trace-lint check traces/*.json
 
 Each report is headed by its file name, and the exit code is the worst outcome across files (`2` if any file errored, else `1` if any had findings, else `0`) -- a bad file doesn't stop the rest from being checked. With `--format json`, a single file prints the flat `{detector: [findings]}` object shown below; multiple files print one object keyed by path.
 
+In GitHub Actions, `--format github` prints each finding as a workflow annotation (`::error file=<trace>,title=agent-trace-lint: <detector>::...`), so findings show up on the run summary and PR checks instead of being buried in the log. Exit codes are unchanged, so the step still fails the job -- add `--exit-zero` to annotate without failing:
+
+```yaml
+- run: agent-trace-lint check traces/*.json --format github
+```
+
 Pass `-` as the trace path to read from stdin instead of a file (it can't be combined with other paths) -- useful when your trace exporter writes to a pipe rather than disk in CI:
 
 ```bash
