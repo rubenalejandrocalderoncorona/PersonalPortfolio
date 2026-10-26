@@ -1,4 +1,5 @@
 import argparse
+import codecs
 import json
 import sys
 from importlib.metadata import PackageNotFoundError, version
@@ -150,13 +151,34 @@ def _parse_json_or_lines(text):
         raise
 
 
+def _decode_trace_bytes(data):
+    """Decode trace bytes: UTF-16 if it has a BOM (what PowerShell's `>`
+    writes), otherwise UTF-8 with an optional BOM. Never the platform's
+    default encoding, which would make the same file read differently per
+    machine."""
+    if data.startswith((codecs.BOM_UTF16_LE, codecs.BOM_UTF16_BE)):
+        return data.decode("utf-16")
+    return data.decode("utf-8-sig")
+
+
+def _read_trace_text(path):
+    if path != "-":
+        with open(path, "rb") as f:
+            return _decode_trace_bytes(f.read())
+    # Real stdin has a byte buffer; a substituted text stream (tests) may not.
+    buffer = getattr(sys.stdin, "buffer", None)
+    if buffer is not None:
+        return _decode_trace_bytes(buffer.read())
+    return sys.stdin.read().removeprefix("\ufeff")
+
+
 def _load_trace(path):
     """Return (trace, None) on success or (None, error message) on failure."""
     try:
-        if path == "-":
-            return _parse_json_or_lines(sys.stdin.read()), None
-        with open(path) as f:
-            return _parse_json_or_lines(f.read()), None
+        return _parse_json_or_lines(_read_trace_text(path)), None
+    except UnicodeDecodeError as exc:
+        source = "stdin" if path == "-" else path
+        return None, f"could not decode {source} as UTF-8 or UTF-16 ({exc.reason})"
     except FileNotFoundError:
         return None, f"trace file not found: {path}"
     except OSError as exc:

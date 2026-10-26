@@ -581,3 +581,64 @@ def test_mismatch_annotation_includes_score_and_escapes_the_reasoning():
     assert "'search_database' looks unrelated to its stated reasoning (score 0.0291)" in summary
     assert "trace:" not in summary
     assert summary.endswith("(spans: s1)")
+
+
+NON_ASCII_TRACE = json.dumps([{"attributes": {"note": "café ☕"}}], ensure_ascii=False)
+
+
+@pytest.mark.parametrize(
+    "raw",
+    [
+        NON_ASCII_TRACE.encode("utf-8"),
+        b"\xef\xbb\xbf" + NON_ASCII_TRACE.encode("utf-8"),
+        NON_ASCII_TRACE.encode("utf-16"),  # little-endian with a BOM, as PowerShell writes it
+        b"\xfe\xff" + NON_ASCII_TRACE.encode("utf-16-be"),
+    ],
+    ids=["utf-8", "utf-8-bom", "utf-16-le", "utf-16-be"],
+)
+def test_trace_files_decode_to_the_same_text_whatever_the_encoding(tmp_path, raw):
+    from agent_trace_lint.cli import _load_trace
+
+    path = tmp_path / "trace.json"
+    path.write_bytes(raw)
+
+    trace, error = _load_trace(str(path))
+
+    assert error is None
+    assert trace[0]["attributes"]["note"] == "café ☕"
+
+
+def test_utf16_trace_file_is_checked_not_crashed_on(tmp_path):
+    path = tmp_path / "trace.json"
+    path.write_bytes(json.dumps([]).encode("utf-16"))
+    assert _run_check(make_args(path, detectors="repetition")) == 0
+
+
+def test_a_utf8_bom_is_tolerated(tmp_path):
+    path = tmp_path / "trace.json"
+    path.write_bytes(b"\xef\xbb\xbf" + json.dumps([]).encode("utf-8"))
+    assert _run_check(make_args(path, detectors="repetition")) == 0
+
+
+def test_undecodable_file_exits_2_with_a_clear_message(tmp_path, capsys):
+    path = tmp_path / "latin1.json"
+    path.write_bytes('[{"note": "café"}]'.encode("latin-1"))
+
+    assert _run_check(make_args(path, detectors="repetition")) == 2
+    err = capsys.readouterr().err
+    assert "could not decode" in err and "UTF-8 or UTF-16" in err
+
+
+def test_stdin_bytes_are_decoded_as_utf16_too():
+    result = subprocess.run(
+        [sys.executable, "-m", "agent_trace_lint.cli", "check", "-", "--detectors", "repetition"],
+        input=json.dumps([]).encode("utf-16"),
+        capture_output=True,
+    )
+    assert result.returncode == 0, result.stderr
+    assert b"no issues detected" in result.stdout
+
+
+def test_utf8_bom_on_text_stdin_is_stripped(monkeypatch):
+    monkeypatch.setattr(sys, "stdin", io.StringIO("﻿" + json.dumps([])))
+    assert _run_check(make_args("-", detectors="repetition")) == 0

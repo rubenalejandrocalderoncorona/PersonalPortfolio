@@ -156,6 +156,8 @@ Note: the mismatch detector downloads its embedding model from Hugging Face on f
 - **OpenTelemetry Python SDK JSON** -- what `span.to_json()` produces (see `scripts/generate_sample_trace.py`): a JSON array of spans, or an object with a `spans` array.
 - **OTLP/JSON** -- what the OpenTelemetry Collector's file exporter writes: a `resourceSpans` document, or newline-delimited `.jsonl` with one export per line. Typed attribute values (`stringValue`, `intValue`, `arrayValue`, ...) are decoded for you.
 
+Trace files are read as UTF-8 (a BOM is fine) or UTF-16 -- the latter is what PowerShell's `>` redirection writes -- regardless of the machine's locale. Anything else exits `2` with a `could not decode` error.
+
 Anything else -- a JSON object with none of those keys, say -- exits `2` with an `unrecognized trace format` error naming the keys it found, rather than reporting a clean trace it never actually read.
 
 ## Limitations
