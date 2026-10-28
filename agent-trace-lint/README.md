@@ -81,15 +81,18 @@ agent-trace-lint check traces/sample_trace.json --detectors mismatch --mismatch-
 
 It's a cosine similarity, so it must be between `-1.0` and `1.0` -- a value outside that range (e.g. `30`, meant as a percentage) is rejected rather than run, since it would otherwise silently flag every pair or none at all.
 
-To catch alternating loops, add the opt-in `cycle` detector. A sequence of 2-4 calls must repeat `--cycle-repeats` times in a row (default `3`, minimum `2`) before it's flagged:
+To catch alternating loops, add the opt-in `cycle` detector. A sequence of 2-4 calls must repeat `--cycle-repeats` times in a row (default `3`, minimum `2`) before it's flagged. `traces/ping_pong_trace.json` is an example where `search` and `read_page` alternate three times -- the `repetition` detector reports it clean, `cycle` doesn't:
 
 ```bash
-agent-trace-lint check traces/sample_trace.json --detectors repetition,mismatch,cycle
+agent-trace-lint check traces/ping_pong_trace.json --detectors cycle
 ```
 
 ```
+found 1 issue(s):
+
   [CYCLE] 'search' -> 'read_page' repeated 3 times (6 calls)
-          spans: 0x0000, 0x0001, 0x0002, 0x0003, 0x0004, 0x0005
+          trace: 0x5a1e0b7c4d2f9e8a6b3c1d0f7e5a4b29
+          spans: 0xa1b2c3d4e5f60000, 0xa1b2c3d4e5f60001, 0xa1b2c3d4e5f60002, 0xa1b2c3d4e5f60003, 0xa1b2c3d4e5f60004, 0xa1b2c3d4e5f60005
 ```
 
 If your agent legitimately retries a call once or twice before moving on, raise `--repeat-min` (default `2`, minimum `2`) so the `repetition` detector only flags longer runs:

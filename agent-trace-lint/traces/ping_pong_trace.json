@@ -1,0 +1,80 @@
+[
+  {
+    "name": "execute_tool search",
+    "context": {
+      "trace_id": "0x5a1e0b7c4d2f9e8a6b3c1d0f7e5a4b29",
+      "span_id": "0xa1b2c3d4e5f60000"
+    },
+    "start_time": "2026-01-01T00:00:00.000000Z",
+    "attributes": {
+      "gen_ai.operation.name": "execute_tool",
+      "gen_ai.tool.name": "search",
+      "gen_ai.tool.call.arguments": "{\"q\": \"paris travel advisories\"}"
+    }
+  },
+  {
+    "name": "execute_tool read_page",
+    "context": {
+      "trace_id": "0x5a1e0b7c4d2f9e8a6b3c1d0f7e5a4b29",
+      "span_id": "0xa1b2c3d4e5f60001"
+    },
+    "start_time": "2026-01-01T00:00:01.000000Z",
+    "attributes": {
+      "gen_ai.operation.name": "execute_tool",
+      "gen_ai.tool.name": "read_page",
+      "gen_ai.tool.call.arguments": "{\"id\": 1}"
+    }
+  },
+  {
+    "name": "execute_tool search",
+    "context": {
+      "trace_id": "0x5a1e0b7c4d2f9e8a6b3c1d0f7e5a4b29",
+      "span_id": "0xa1b2c3d4e5f60002"
+    },
+    "start_time": "2026-01-01T00:00:02.000000Z",
+    "attributes": {
+      "gen_ai.operation.name": "execute_tool",
+      "gen_ai.tool.name": "search",
+      "gen_ai.tool.call.arguments": "{\"q\": \"paris travel advisories\"}"
+    }
+  },
+  {
+    "name": "execute_tool read_page",
+    "context": {
+      "trace_id": "0x5a1e0b7c4d2f9e8a6b3c1d0f7e5a4b29",
+      "span_id": "0xa1b2c3d4e5f60003"
+    },
+    "start_time": "2026-01-01T00:00:03.000000Z",
+    "attributes": {
+      "gen_ai.operation.name": "execute_tool",
+      "gen_ai.tool.name": "read_page",
+      "gen_ai.tool.call.arguments": "{\"id\": 1}"
+    }
+  },
+  {
+    "name": "execute_tool search",
+    "context": {
+      "trace_id": "0x5a1e0b7c4d2f9e8a6b3c1d0f7e5a4b29",
+      "span_id": "0xa1b2c3d4e5f60004"
+    },
+    "start_time": "2026-01-01T00:00:04.000000Z",
+    "attributes": {
+      "gen_ai.operation.name": "execute_tool",
+      "gen_ai.tool.name": "search",
+      "gen_ai.tool.call.arguments": "{\"q\": \"paris travel advisories\"}"
+    }
+  },
+  {
+    "name": "execute_tool read_page",
+    "context": {
+      "trace_id": "0x5a1e0b7c4d2f9e8a6b3c1d0f7e5a4b29",
+      "span_id": "0xa1b2c3d4e5f60005"
+    },
+    "start_time": "2026-01-01T00:00:05.000000Z",
+    "attributes": {
+      "gen_ai.operation.name": "execute_tool",
+      "gen_ai.tool.name": "read_page",
+      "gen_ai.tool.call.arguments": "{\"id\": 1}"
+    }
+  }
+]
