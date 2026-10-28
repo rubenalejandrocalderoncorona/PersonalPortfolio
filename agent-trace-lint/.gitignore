@@ -17,3 +17,4 @@ venv/
 # don't commit them by accident. The checked-in sample is explicitly allowed.
 traces/*.json
 !traces/sample_trace.json
+!traces/ping_pong_trace.json
