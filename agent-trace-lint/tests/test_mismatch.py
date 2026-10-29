@@ -127,3 +127,29 @@ def test_mismatch_finding_reports_the_trace_it_came_from(trace_with_mismatched_r
     (finding,) = detect_mismatch(trace_with_mismatched_reasoning)
 
     assert finding["trace_id"] == "trace-A"
+
+
+def make_operation_span(operation):
+    span = make_chat_attributes_span(["get_weather"], ['{"city": "Paris"}'])
+    span["attributes"]["gen_ai.operation.name"] = operation
+    return span
+
+
+@pytest.mark.parametrize("operation", ["chat", "generate_content", "text_completion"])
+def test_model_call_operations_are_checked(operation):
+    """The GenAI conventions name a model call differently per API style;
+    an agent using Gemini-style generate_content must not be skipped."""
+    assert len(_reasoning_tool_pairs([make_operation_span(operation)])) == 1
+
+
+@pytest.mark.parametrize("operation", ["execute_tool", "embeddings", "invoke_agent", "create_agent", None, "Chat"])
+def test_other_operations_are_not_treated_as_model_calls(operation):
+    assert _reasoning_tool_pairs([make_operation_span(operation)]) == []
+
+
+def test_generate_content_mismatch_is_flagged_end_to_end(trace_with_mismatched_reasoning):
+    trace_with_mismatched_reasoning[0]["attributes"]["gen_ai.operation.name"] = "generate_content"
+
+    (finding,) = detect_mismatch(trace_with_mismatched_reasoning)
+
+    assert finding["tool_name"] == "search_database"

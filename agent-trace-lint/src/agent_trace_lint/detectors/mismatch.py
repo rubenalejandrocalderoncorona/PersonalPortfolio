@@ -14,6 +14,12 @@ from itertools import zip_longest
 
 from agent_trace_lint.spans import extract_spans
 
+# gen_ai.operation.name values for a model call that can carry reasoning text
+# plus tool calls. The GenAI conventions name it "chat" for chat APIs,
+# "generate_content" for Gemini-style APIs, and "text_completion" for legacy
+# completion APIs; tool execution, embeddings and agent spans never do.
+_MODEL_CALL_OPERATIONS = frozenset({"chat", "generate_content", "text_completion"})
+
 _MODEL_NAME = "all-MiniLM-L6-v2"
 _model = None
 
@@ -83,11 +89,11 @@ def _as_list(value):
 
 
 def _reasoning_tool_pairs(spans):
-    """Extract (reasoning, tool call) pairs from chat spans that carry both."""
+    """Extract (reasoning, tool call) pairs from model-call spans that carry both."""
     pairs = []
     for span in spans:
         attributes = span.get("attributes") or {}
-        if attributes.get("gen_ai.operation.name") != "chat":
+        if attributes.get("gen_ai.operation.name") not in _MODEL_CALL_OPERATIONS:
             continue
         reasoning = attributes.get("gen_ai.response.text")
         tool_names = _as_list(attributes.get("gen_ai.response.tool_calls"))
@@ -115,7 +121,7 @@ def detect_mismatch(trace, threshold: float = 0.3) -> list:
     """Flag steps where reasoning text and the tool call that follows it
     look unrelated, based on embedding similarity.
 
-    For each chat span that produced both a reasoning/text response and a
+    For each model-call span that produced both a reasoning/text response and a
     tool call, computes the cosine similarity between the reasoning text
     and a short natural-language rendering of the tool call. Steps scoring
     below `threshold` are flagged.
