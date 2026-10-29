@@ -98,7 +98,9 @@ def _reasoning_tool_pairs(spans):
         reasoning = attributes.get("gen_ai.response.text")
         tool_names = _as_list(attributes.get("gen_ai.response.tool_calls"))
         tool_args = _as_list(attributes.get("gen_ai.response.tool_call_arguments"))
-        if not reasoning or not tool_names:
+        # Only real text can be compared: blank text would embed to noise and
+        # be flagged as a mismatch, and a non-string would crash the embedder.
+        if not isinstance(reasoning, str) or not reasoning.strip() or not tool_names:
             continue
         context = span.get("context") or {}
         span_id = context.get("span_id")

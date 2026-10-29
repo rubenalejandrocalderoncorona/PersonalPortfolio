@@ -19,7 +19,7 @@ That gap matters because these failure modes are common and don't show up in a s
 Two detectors run by default:
 
 - **repetition** -- flags a tool called with the same name and arguments back to back, the signature of a stuck agent loop.
-- **mismatch** -- flags a step where the model's stated reasoning looks unrelated to the tool it then calls, using offline sentence-embedding similarity as a first-pass heuristic. It checks model-call spans named `chat`, `generate_content` or `text_completion` (the GenAI conventions' names for chat, Gemini-style and legacy completion APIs).
+- **mismatch** -- flags a step where the model's stated reasoning looks unrelated to the tool it then calls, using offline sentence-embedding similarity as a first-pass heuristic. It checks model-call spans named `chat`, `generate_content` or `text_completion` (the GenAI conventions' names for chat, Gemini-style and legacy completion APIs). Steps whose reasoning text is blank or not a string are skipped, since there is nothing to compare.
 
 Calls are only compared within the same `trace_id`, so a file holding many traces (a Collector export usually does) never mistakes two different requests for a loop, and a real loop isn't hidden by another trace's call landing in between. Spans with no `trace_id` are treated as one trace.
 

@@ -147,6 +147,23 @@ def test_other_operations_are_not_treated_as_model_calls(operation):
     assert _reasoning_tool_pairs([make_operation_span(operation)]) == []
 
 
+@pytest.mark.parametrize("reasoning", ["", "   ", "\n\t", None, 5, {"k": "v"}, ["a", "b"]])
+def test_reasoning_that_is_not_real_text_is_skipped(reasoning):
+    """Blank text would embed to noise and be flagged as a mismatch; a
+    non-string would crash the embedder. Neither is comparable, so skip."""
+    span = make_chat_attributes_span(["get_weather"], ['{"city": "Paris"}'])
+    span["attributes"]["gen_ai.response.text"] = reasoning
+
+    assert _reasoning_tool_pairs([span]) == []
+
+
+def test_blank_reasoning_is_not_flagged_end_to_end():
+    span = make_chat_attributes_span(["get_weather"], ['{"city": "Paris"}'])
+    span["attributes"]["gen_ai.response.text"] = "   "
+
+    assert detect_mismatch([span]) == []
+
+
 def test_generate_content_mismatch_is_flagged_end_to_end(trace_with_mismatched_reasoning):
     trace_with_mismatched_reasoning[0]["attributes"]["gen_ai.operation.name"] = "generate_content"
 
