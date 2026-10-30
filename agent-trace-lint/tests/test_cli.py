@@ -133,6 +133,44 @@ def test_mismatch_threshold_boundary_values_are_accepted(threshold):
     assert _run_check(args) in (0, 1)
 
 
+@pytest.mark.parametrize(
+    "content",
+    ["[]", '{"spans": []}', '{"resourceSpans": []}'],
+    ids=["empty-array", "empty-spans", "empty-otlp"],
+)
+def test_trace_with_no_spans_warns_but_stays_clean(tmp_path, capsys, content):
+    """An exporter that wrote nothing must not pass silently as a healthy
+    agent, but it isn't a lint finding either, so the exit code is unchanged."""
+    path = tmp_path / "trace.json"
+    path.write_text(content)
+
+    assert _run_check(make_args(path, detectors="repetition")) == 0
+
+    captured = capsys.readouterr()
+    assert f"warning: no spans found in {path}; nothing was checked" in captured.err
+    assert "no issues detected" in captured.out
+
+
+def test_no_spans_warning_does_not_pollute_json_output(tmp_path, capsys):
+    path = tmp_path / "trace.json"
+    path.write_text("[]")
+
+    assert _run_check(make_args(path, detectors="repetition", fmt="json")) == 0
+
+    captured = capsys.readouterr()
+    assert json.loads(captured.out) == {"repetition": []}
+    assert "no spans found" in captured.err
+
+
+def test_trace_with_spans_does_not_warn(tmp_path, capsys):
+    path = tmp_path / "trace.json"
+    path.write_text(json.dumps([{"attributes": {"gen_ai.operation.name": "chat"}}]))
+
+    assert _run_check(make_args(path, detectors="repetition")) == 0
+
+    assert "no spans found" not in capsys.readouterr().err
+
+
 def test_findings_on_spans_without_ids_still_render(tmp_path, capsys):
     def tool_span(start_time):
         return {

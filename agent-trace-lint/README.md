@@ -161,6 +161,8 @@ Note: the mismatch detector downloads its embedding model from Hugging Face on f
 
 Trace files are read as UTF-8 (a BOM is fine) or UTF-16 -- the latter is what PowerShell's `>` redirection writes -- regardless of the machine's locale. Anything else exits `2` with a `could not decode` error.
 
+A file that parses but holds no spans at all (`[]`, an empty `resourceSpans`) is reported clean with exit `0`, plus a `warning: no spans found` line on stderr -- so an exporter that silently wrote nothing doesn't pass for a healthy agent. stdout (including `--format json`) is unchanged.
+
 Anything else -- a JSON object with none of those keys, say -- exits `2` with an `unrecognized trace format` error naming the keys it found, rather than reporting a clean trace it never actually read.
 
 ## Limitations

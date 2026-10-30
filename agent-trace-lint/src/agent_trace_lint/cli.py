@@ -7,7 +7,7 @@ from importlib.metadata import PackageNotFoundError, version
 from agent_trace_lint.detectors.cycle import detect_cycle
 from agent_trace_lint.detectors.mismatch import ModelLoadError, detect_mismatch
 from agent_trace_lint.detectors.repetition import detect_repetition
-from agent_trace_lint.spans import TraceFormatError
+from agent_trace_lint.spans import TraceFormatError, extract_spans
 
 try:
     __version__ = version("agent-trace-lint")
@@ -255,6 +255,11 @@ def _run_check(args):
             print(f"error: malformed trace in {source}: {exc}", file=sys.stderr)
             exit_code = 2
             continue
+
+        if not extract_spans(trace):
+            # An empty export (exporter wrote nothing, wrong file) looks the
+            # same as a healthy agent, so say that nothing was checked.
+            print(f"warning: no spans found in {source}; nothing was checked", file=sys.stderr)
 
         all_results[path] = results
         if any(results.values()):
