@@ -164,3 +164,32 @@ def test_unix_nanoseconds_compare_with_iso_times():
 def test_unparseable_times_sort_first_instead_of_raising(value):
     assert start_time_key(value) == (0, 0, 0)
     assert start_time_key(value) < start_time_key("2026-01-01T00:00:00Z")
+
+
+@pytest.mark.parametrize("field", ["attributes", "context"])
+@pytest.mark.parametrize("value", ["x", ["x"], 5])
+def test_sdk_span_fields_that_are_not_objects_are_rejected(field, value):
+    """These used to surface as "'list' object has no attribute 'get'"."""
+    with pytest.raises(TraceFormatError, match=f"span 1 in the trace: '{field}' must be an object"):
+        extract_spans([{}, {field: value}])
+
+
+def test_sdk_span_with_null_fields_is_valid():
+    assert extract_spans([{"attributes": None, "context": None}]) == [{"attributes": None, "context": None}]
+
+
+@pytest.mark.parametrize(
+    "trace, message",
+    [
+        ({"resourceSpans": ["x"]}, "item 0 in 'resourceSpans' must be an object"),
+        ({"resourceSpans": [{"scopeSpans": "x"}]}, "'scopeSpans' must be a list"),
+        ({"resourceSpans": [{"scopeSpans": ["x"]}]}, "item 0 in 'scopeSpans' must be an object"),
+        (
+            {"resourceSpans": [{"scopeSpans": [{"spans": [{"attributes": "x"}]}]}]},
+            "'attributes' must be a list of key/value objects, got str",
+        ),
+    ],
+)
+def test_malformed_otlp_shapes_are_rejected_with_a_clear_error(trace, message):
+    with pytest.raises(TraceFormatError, match=message):
+        extract_spans(trace)

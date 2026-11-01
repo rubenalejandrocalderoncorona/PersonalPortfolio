@@ -57,14 +57,33 @@ class TraceFormatError(ValueError):
     """The trace is valid JSON but not in a shape agent-trace-lint can read."""
 
 
+def _check_objects(items, where, noun="item"):
+    if not isinstance(items, list):
+        raise TraceFormatError(f"{where} must be a list, got {type(items).__name__}")
+    for index, item in enumerate(items):
+        if not isinstance(item, dict):
+            raise TraceFormatError(
+                f"{noun} {index} in {where} must be an object, got {type(item).__name__}"
+            )
+    return items
+
+
 def _check_spans(spans, where):
     if not isinstance(spans, list):
         raise TraceFormatError(f"{where} must be a list of spans, got {type(spans).__name__}")
+    return _check_objects(spans, where, noun="span")
+
+
+def _check_sdk_span_fields(spans, where):
+    """SDK-style spans keep attributes and context as objects; anything else
+    would otherwise surface as an AttributeError deep inside a detector."""
     for index, span in enumerate(spans):
-        if not isinstance(span, dict):
-            raise TraceFormatError(
-                f"span {index} in {where} must be an object, got {type(span).__name__}"
-            )
+        for field in ("attributes", "context"):
+            value = span.get(field)
+            if value is not None and not isinstance(value, dict):
+                raise TraceFormatError(
+                    f"span {index} in {where}: '{field}' must be an object, got {type(value).__name__}"
+                )
     return spans
 
 
@@ -110,11 +129,16 @@ def _flatten_otlp(exports):
         resource_spans = export.get("resourceSpans")
         if not isinstance(resource_spans, list):
             raise TraceFormatError("'resourceSpans' must be a list")
-        for resource in resource_spans:
+        for resource in _check_objects(resource_spans, "'resourceSpans'"):
             # "instrumentationLibrarySpans" is the pre-1.0 name for "scopeSpans"
             scopes = resource.get("scopeSpans") or resource.get("instrumentationLibrarySpans") or []
-            for scope in scopes:
+            for scope in _check_objects(scopes, "'scopeSpans'"):
                 for span in _check_spans(scope.get("spans") or [], "scope 'spans'"):
+                    if not isinstance(span.get("attributes") or [], list):
+                        raise TraceFormatError(
+                            f"an OTLP span's 'attributes' must be a list of key/value objects, "
+                            f"got {type(span['attributes']).__name__}"
+                        )
                     spans.append(_normalize_otlp_span(span))
     return spans
 
@@ -124,10 +148,10 @@ def extract_spans(trace):
         # A list of OTLP exports, e.g. a Collector file-exporter .jsonl file
         if trace and all(isinstance(e, dict) and "resourceSpans" in e for e in trace):
             return _flatten_otlp(trace)
-        return _check_spans(trace, "the trace")
+        return _check_sdk_span_fields(_check_spans(trace, "the trace"), "the trace")
     if isinstance(trace, dict):
         if "spans" in trace:
-            return _check_spans(trace["spans"], "'spans'")
+            return _check_sdk_span_fields(_check_spans(trace["spans"], "'spans'"), "'spans'")
         if "resourceSpans" in trace:
             return _flatten_otlp([trace])
         raise TraceFormatError(
