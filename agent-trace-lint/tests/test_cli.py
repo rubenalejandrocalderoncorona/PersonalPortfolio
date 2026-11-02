@@ -356,6 +356,23 @@ def test_hello_rejects_stray_arguments():
     assert "unrecognized arguments: extra" in result.stderr
 
 
+def test_running_with_no_command_is_an_error_not_a_silent_pass():
+    """A bare `agent-trace-lint` used to print usage and exit 0, so a CI step
+    whose arguments expanded to nothing looked like a clean lint."""
+    result = _run_cli()
+
+    assert result.returncode == 2
+    assert "a command is required" in result.stderr
+    assert "agent-trace-lint check <trace_path>" in result.stderr
+
+
+def test_top_level_help_still_exits_zero():
+    result = _run_cli("--help")
+
+    assert result.returncode == 0
+    assert "{hello,check}" in result.stdout
+
+
 def test_check_help_documents_format_default_and_exit_codes():
     result = _run_cli("check", "--help")
     assert result.returncode == 0

@@ -385,7 +385,9 @@ def main():
     elif args.command == "check":
         sys.exit(_run_check(args))
     else:
-        parser.print_help()
+        # Exiting 0 here would let a CI step like `agent-trace-lint $ARGS`
+        # (with $ARGS empty) pass green without checking anything.
+        parser.error("a command is required, e.g. `agent-trace-lint check <trace_path>`")
 
 
 if __name__ == "__main__":

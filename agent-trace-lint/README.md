@@ -59,7 +59,7 @@ found 2 issue(s):
 
 If the `agent-trace-lint` script isn't on your `PATH` (some CI images and virtualenvs), `python -m agent_trace_lint check ...` runs the same CLI.
 
-Exits `0` if the trace is clean, `1` if findings were reported (so it can gate CI), or `2` on an error (bad path, invalid JSON, an unrecognized trace format, unknown or empty `--detectors` list, or the embedding model failing to load) -- so a broken environment is never mistaken for a lint finding.
+Exits `0` if the trace is clean, `1` if findings were reported (so it can gate CI), or `2` on an error (bad path, invalid JSON, an unrecognized trace format, unknown or empty `--detectors` list, running with no command at all, or the embedding model failing to load) -- so a broken environment is never mistaken for a lint finding.
 
 Rolling this out on an existing agent? Add `--exit-zero` to run in report-only mode: findings are still printed, but the exit code stays `0` so the build doesn't fail while you tune thresholds. Real errors (bad path, invalid JSON, a bad flag value) still exit `2`, so a broken setup can't pass as clean.
 
