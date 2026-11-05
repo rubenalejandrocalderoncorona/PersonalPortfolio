@@ -160,7 +160,7 @@ def test_unix_nanoseconds_compare_with_iso_times():
     assert start_time_key("2026-01-01T00:00:00Z") < start_time_key(nanos) < start_time_key("2026-01-01T00:00:01Z")
 
 
-@pytest.mark.parametrize("value", [None, "", "yesterday", "2026-13-45T99:99:99Z", 12345, {"x": 1}])
+@pytest.mark.parametrize("value", [None, "", "yesterday", "2026-13-45T99:99:99Z", 1.5, True, -5, {"x": 1}])
 def test_unparseable_times_sort_first_instead_of_raising(value):
     assert start_time_key(value) == (0, 0, 0)
     assert start_time_key(value) < start_time_key("2026-01-01T00:00:00Z")
@@ -193,3 +193,19 @@ def test_sdk_span_with_null_fields_is_valid():
 def test_malformed_otlp_shapes_are_rejected_with_a_clear_error(trace, message):
     with pytest.raises(TraceFormatError, match=message):
         extract_spans(trace)
+
+
+def test_integer_unix_nanoseconds_match_their_string_form():
+    nanos = 1_767_225_600 * 1_000_000_000 + 500_000_000
+    assert start_time_key(nanos) == start_time_key(str(nanos)) == (1, 1_767_225_600, 500_000_000)
+
+
+def test_integer_nanoseconds_compare_with_iso_times():
+    nanos = 1_767_225_600 * 1_000_000_000 + 500_000_000  # 2026-01-01T00:00:00.5Z
+    assert start_time_key("2026-01-01T00:00:00Z") < start_time_key(nanos) < start_time_key("2026-01-01T00:00:01Z")
+
+
+@pytest.mark.parametrize("variant", ["2026-01-01T00:00:00z", "2026-01-01t00:00:00Z", "2026-01-01t00:00:00z"])
+def test_lowercase_t_and_z_are_accepted_like_their_uppercase_forms(variant):
+    """RFC 3339 allows lowercase "t" and "z"."""
+    assert start_time_key(variant) == start_time_key("2026-01-01T00:00:00Z") != (0, 0, 0)

@@ -14,9 +14,11 @@ spans are normalized into the flat shape so detectors only see one format.
 import re
 from datetime import datetime, timedelta, timezone
 
+# Case-insensitive because RFC 3339 allows a lowercase "t" and "z".
 _ISO_TIME = re.compile(
     r"^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2}):(\d{2})(?:\.(\d+))?"
-    r"(Z|[+-]\d{2}:?\d{2})?$"
+    r"(Z|[+-]\d{2}:?\d{2})?$",
+    re.IGNORECASE,
 )
 
 
@@ -27,10 +29,13 @@ def start_time_key(value):
     before "...01Z" because "." < "Z", and offsets like +02:00 aren't
     comparable as text). Accepts ISO 8601 (any fractional-second width,
     "Z" or a numeric offset; no offset means UTC) and unix-epoch
-    nanoseconds as digits, as OTLP uses. Returns (known, seconds, nanos);
-    anything unparseable -- including a missing time -- gets (0, 0, 0), which
-    sorts first and, because sorting is stable, keeps file order.
+    nanoseconds, as OTLP uses, written either as digits in a string or as a
+    JSON integer. Returns (known, seconds, nanos); anything unparseable --
+    including a missing time -- gets (0, 0, 0), which sorts first and,
+    because sorting is stable, keeps file order.
     """
+    if isinstance(value, int) and not isinstance(value, bool) and value >= 0:
+        value = str(value)
     if isinstance(value, str) and value.isdigit():
         nanos = int(value)
         return (1, nanos // 1_000_000_000, nanos % 1_000_000_000)
@@ -45,7 +50,7 @@ def start_time_key(value):
                           tzinfo=timezone.utc)
     except ValueError:
         return (0, 0, 0)
-    if zone and zone != "Z":
+    if zone and zone[0] in "+-":
         sign = 1 if zone[0] == "+" else -1
         digits = zone[1:].replace(":", "")
         moment -= sign * timedelta(hours=int(digits[:2]), minutes=int(digits[2:]))

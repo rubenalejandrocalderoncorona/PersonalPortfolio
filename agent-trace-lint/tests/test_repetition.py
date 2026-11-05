@@ -179,3 +179,26 @@ def test_timestamps_in_different_offsets_are_ordered_by_instant():
         make_tool_span("3", "a", {}, "2026-01-01T00:45:00Z"),
     ]
     assert detect_repetition(trace) == []
+
+
+@pytest.mark.parametrize(
+    "times",
+    [
+        [1_767_225_601_000_000_000, 1_767_225_603_000_000_000, 1_767_225_602_000_000_000],
+        ["2026-01-01T00:00:01z", "2026-01-01T00:00:03z", "2026-01-01T00:00:02z"],
+    ],
+    ids=["integer-nanoseconds", "lowercase-z"],
+)
+def test_out_of_order_spans_are_sorted_whatever_the_time_notation(times):
+    """File order is a, b, a but chronological order is a, a, b; the time must
+    be understood for the back-to-back repeat to be seen."""
+    trace = [
+        make_tool_span("s0", "a", {}, times[0]),
+        make_tool_span("s1", "b", {}, times[1]),
+        make_tool_span("s2", "a", {}, times[2]),
+    ]
+
+    (finding,) = detect_repetition(trace)
+
+    assert finding["tool_name"] == "a"
+    assert finding["span_ids"] == ["s0", "s2"]

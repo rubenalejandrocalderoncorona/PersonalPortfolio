@@ -161,6 +161,8 @@ Note: the mismatch detector downloads its embedding model from Hugging Face on f
 - **OpenTelemetry Python SDK JSON** -- what `span.to_json()` produces (see `scripts/generate_sample_trace.py`): a JSON array of spans, or an object with a `spans` array.
 - **OTLP/JSON** -- what the OpenTelemetry Collector's file exporter writes: a `resourceSpans` document, or newline-delimited `.jsonl` with one export per line. Typed attribute values (`stringValue`, `intValue`, `arrayValue`, ...) are decoded for you.
 
+Calls are put in time order by each span's `start_time`, so a file whose spans aren't sorted is still read correctly. ISO 8601 (`Z`/`z` or a numeric offset) and unix nanoseconds, as a string or a plain integer, are understood. A span with a missing or unrecognized time keeps its position in the file.
+
 Trace files are read as UTF-8 (a BOM is fine) or UTF-16 -- the latter is what PowerShell's `>` redirection writes -- regardless of the machine's locale. Anything else exits `2` with a `could not decode` error.
 
 A recognized format with a malformed part -- a span whose `attributes` is a string, say -- also exits `2`, with an error naming the span and field at fault.
