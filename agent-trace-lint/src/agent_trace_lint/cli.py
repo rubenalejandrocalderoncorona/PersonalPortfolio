@@ -23,8 +23,19 @@ DETECTORS = {
 DEFAULT_DETECTORS = "repetition,mismatch"
 
 
+# A stuck agent can loop thousands of times; listing every span would turn one
+# finding into a six-figure-character line. --format json keeps the full list.
+MAX_SPAN_IDS_SHOWN = 10
+
+
 def _format_span_ids(span_ids):
-    return ", ".join("<unknown>" if sid is None else str(sid) for sid in span_ids)
+    shown = ", ".join(
+        "<unknown>" if sid is None else str(sid) for sid in span_ids[:MAX_SPAN_IDS_SHOWN]
+    )
+    hidden = len(span_ids) - MAX_SPAN_IDS_SHOWN
+    if hidden > 0:
+        shown += f", ... (+{hidden} more; --format json lists all)"
+    return shown
 
 
 def _trace_line(finding, indent):

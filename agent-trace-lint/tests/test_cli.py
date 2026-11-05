@@ -697,3 +697,61 @@ def test_stdin_bytes_are_decoded_as_utf16_too():
 def test_utf8_bom_on_text_stdin_is_stripped(monkeypatch):
     monkeypatch.setattr(sys, "stdin", io.StringIO("﻿" + json.dumps([])))
     assert _run_check(make_args("-", detectors="repetition")) == 0
+
+
+def _loop_trace_path(tmp_path, calls):
+    spans = [
+        {
+            "context": {"span_id": f"s{i}", "trace_id": "t"},
+            "attributes": {
+                "gen_ai.operation.name": "execute_tool",
+                "gen_ai.tool.name": "search",
+                "gen_ai.tool.call.arguments": "{}",
+            },
+            "start_time": f"2026-01-01T00:00:00.{i:06d}Z",
+        }
+        for i in range(calls)
+    ]
+    path = tmp_path / "loop.json"
+    path.write_text(json.dumps(spans))
+    return path
+
+
+def test_span_ids_up_to_the_limit_are_all_listed(tmp_path, capsys):
+    path = _loop_trace_path(tmp_path, 10)
+
+    assert _run_check(make_args(path, detectors="repetition")) == 1
+
+    out = capsys.readouterr().out
+    assert "spans: s0, s1, s2, s3, s4, s5, s6, s7, s8, s9\n" in out
+    assert "more" not in out
+
+
+def test_long_loop_lists_only_the_first_span_ids_in_text(tmp_path, capsys):
+    """A 5000-call loop used to print all 5000 span ids on a single line."""
+    path = _loop_trace_path(tmp_path, 5000)
+
+    assert _run_check(make_args(path, detectors="repetition")) == 1
+
+    out = capsys.readouterr().out
+    assert "called 5000 times in a row" in out
+    assert "s9, ... (+4990 more; --format json lists all)" in out
+    assert "s10," not in out
+    assert len(out) < 1000
+
+
+def test_long_loop_annotation_is_truncated_too(tmp_path, capsys):
+    path = _loop_trace_path(tmp_path, 11)
+
+    assert _run_check(make_args(path, detectors="repetition", fmt="github")) == 1
+
+    assert "s9, ... (+1 more; --format json lists all)" in capsys.readouterr().out
+
+
+def test_json_output_keeps_every_span_id(tmp_path, capsys):
+    path = _loop_trace_path(tmp_path, 25)
+
+    assert _run_check(make_args(path, detectors="repetition", fmt="json")) == 1
+
+    (finding,) = json.loads(capsys.readouterr().out)["repetition"]
+    assert finding["span_ids"] == [f"s{i}" for i in range(25)]

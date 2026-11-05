@@ -121,6 +121,8 @@ Pass `-` as the trace path to read from stdin instead of a file (it can't be com
 your-agent-runner --export-trace | agent-trace-lint check -
 ```
 
+Text and GitHub output list at most the first 10 span ids of a finding, ending with `... (+N more; --format json lists all)`, so a loop that ran thousands of times stays readable; `--format json` always carries the full list.
+
 Use `--format json` for machine-readable output, grouped by detector. Each finding carries the `trace_id` it came from (`null` if the spans have none), which is how you locate it in a file holding many traces:
 
 ```bash
