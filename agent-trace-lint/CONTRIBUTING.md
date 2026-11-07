@@ -1,6 +1,6 @@
 # Contributing
 
-`agent-trace-lint` is v0.1 -- both detectors are heuristics, and the thing they need most right now isn't more code, it's more real traces to test against.
+`agent-trace-lint` is v0.1 -- its detectors are heuristics, and the thing they need most right now isn't more code, it's more real traces to test against.
 
 ## The most valuable contribution: a false positive or false negative
 
@@ -16,7 +16,7 @@ please open an issue with:
 3. What `agent-trace-lint` said vs. what you expected
 4. A sentence on why you think it's wrong (e.g. "these two calls only look identical, the retry actually had a different `page` argument the detector didn't parse")
 
-Even a single confusing example is useful -- both detectors are simple on purpose right now, and they'll only get better tuned against cases that actually broke.
+Even a single confusing example is useful -- the detectors are simple on purpose right now, and they'll only get better tuned against cases that actually broke.
 
 ## Code contributions
 
@@ -28,5 +28,9 @@ To run the test suite locally:
 pip install -e ".[test]"
 pytest
 ```
+
+The first run downloads the `all-MiniLM-L6-v2` embedding model from Hugging Face (cached after that), because the mismatch tests and the README-example tests use the real model. Without network access or a cached copy, those tests fail with a "could not load embedding model" error -- the rest of the suite is unaffected.
+
+`tests/test_readme.py` runs every command shown in the README and checks that its output matches what the README claims. If you change what the tool prints, update the README example in the same commit.
 
 The same suite runs automatically in CI on every push and pull request that touches `agent-trace-lint/` -- see the badge at the top of the [README](README.md).

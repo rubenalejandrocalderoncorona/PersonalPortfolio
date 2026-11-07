@@ -178,7 +178,7 @@ This is v0.1. In particular:
 - **Repetition detection uses exact/near-exact matching.** It compares tool name and parsed arguments for equality -- it is not yet argument-similarity aware, so a retry with a trivially different argument (a different page number, a reworded query) won't be caught even though it's the same underlying loop.
 - **Alternating loops need the opt-in `cycle` detector.** The default `repetition` detector only sees back-to-back runs of one call, so an agent bouncing between two calls isn't flagged unless you run `--detectors repetition,mismatch,cycle`. `cycle` is exact-match too (same names *and* arguments), and only looks for blocks of up to 4 calls.
 - **Mismatch detection is a first-pass embedding-similarity heuristic**, not a validated classifier. It has not been tuned against a large labeled dataset of real reasoning/action mismatches -- treat a low score as "worth a human look," not "confirmed defect."
-- Both detectors are early and will misfire on trace shapes they haven't seen yet.
+- All the detectors are early and will misfire on trace shapes they haven't seen yet.
 
 Contributions and, especially, real-world trace examples (particularly false positives and false negatives) are very welcome -- see [CONTRIBUTING.md](CONTRIBUTING.md).
 
