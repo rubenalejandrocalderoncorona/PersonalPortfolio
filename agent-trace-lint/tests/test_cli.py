@@ -755,3 +755,58 @@ def test_json_output_keeps_every_span_id(tmp_path, capsys):
 
     (finding,) = json.loads(capsys.readouterr().out)["repetition"]
     assert finding["span_ids"] == [f"s{i}" for i in range(25)]
+
+
+def _mismatch_finding(reasoning):
+    return {
+        "tool_name": "search_database",
+        "arguments": {},
+        "span_ids": ["s1"],
+        "trace_id": "t",
+        "reasoning": reasoning,
+        "score": 0.01,
+        "note": "n",
+    }
+
+
+def test_short_reasoning_is_shown_whole():
+    from agent_trace_lint.cli import MAX_REASONING_CHARS, _format_mismatch, _summarize
+
+    reasoning = "x" * MAX_REASONING_CHARS  # exactly at the limit
+
+    finding = _mismatch_finding(reasoning)
+
+    assert f"reasoning: {reasoning!r}\n" in _format_mismatch(finding)
+    assert reasoning in _summarize("mismatch", finding)
+    assert "more chars" not in _format_mismatch(finding)
+    assert "more chars" not in _summarize("mismatch", finding)
+
+
+def test_long_reasoning_is_cut_with_a_marker_in_text_and_annotations():
+    """Seven kilobytes of model reasoning used to land on a single log line."""
+    from agent_trace_lint.cli import MAX_REASONING_CHARS, _format_mismatch, _summarize
+
+    reasoning = "a" * MAX_REASONING_CHARS + "TAIL" * 1000
+    hidden = len(reasoning) - MAX_REASONING_CHARS
+
+    finding = _mismatch_finding(reasoning)
+
+    for rendered in (_format_mismatch(finding), _summarize("mismatch", finding)):
+        assert "a" * MAX_REASONING_CHARS in rendered
+        assert "TAIL" not in rendered
+        assert f"(+{hidden} more chars; --format json has all)" in rendered
+        assert len(rendered) < 1000
+
+
+def test_json_output_keeps_the_whole_reasoning(monkeypatch, tmp_path, capsys):
+    from agent_trace_lint import cli
+
+    long_reasoning = "word " * 400
+    finding = _mismatch_finding(long_reasoning)
+    monkeypatch.setitem(cli.DETECTORS, "mismatch", lambda trace, **kw: [finding])
+    path = tmp_path / "trace.json"
+    path.write_text("[]")
+
+    assert _run_check(make_args(path, detectors="mismatch", fmt="json")) == 1
+
+    assert json.loads(capsys.readouterr().out)["mismatch"][0]["reasoning"] == long_reasoning

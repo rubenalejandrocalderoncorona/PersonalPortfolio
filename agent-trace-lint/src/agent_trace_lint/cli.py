@@ -38,6 +38,20 @@ def _format_span_ids(span_ids):
     return shown
 
 
+# Model reasoning is often several paragraphs; the first part is enough to
+# recognise the step, and --format json carries the whole text.
+MAX_REASONING_CHARS = 200
+
+
+def _shorten_reasoning(text):
+    """(excerpt, suffix): the reasoning cut to MAX_REASONING_CHARS, and a
+    marker saying how much was left out ("" if nothing was)."""
+    hidden = len(text) - MAX_REASONING_CHARS
+    if hidden <= 0:
+        return text, ""
+    return text[:MAX_REASONING_CHARS], f" ... (+{hidden} more chars; --format json has all)"
+
+
 def _trace_line(finding, indent):
     """A "trace: <id>" line (with trailing newline), or "" if there's no trace_id."""
     if finding.get("trace_id") is None:
@@ -56,10 +70,11 @@ def _format_repetition(finding):
 
 def _format_mismatch(finding):
     span_ids = _format_span_ids(finding["span_ids"])
+    reasoning, cut = _shorten_reasoning(finding["reasoning"])
     return (
         f"  [MISMATCH] '{finding['tool_name']}' looks unrelated to its stated reasoning "
         f"(score: {finding['score']})\n"
-        f"           reasoning: {finding['reasoning']!r}\n"
+        f"           reasoning: {reasoning!r}{cut}\n"
         f"{_trace_line(finding, 11)}"
         f"           spans: {span_ids}\n"
         f"           note: {finding['note']}"
@@ -102,9 +117,10 @@ def _summarize(detector_name, finding):
         sequence = " -> ".join(f"'{name}'" for name in finding["tool_names"])
         text = f"{sequence} repeated {finding['repeat_count']} times ({len(finding['span_ids'])} calls)"
     else:
+        reasoning, cut = _shorten_reasoning(finding["reasoning"])
         text = (
             f"'{finding['tool_name']}' looks unrelated to its stated reasoning "
-            f"(score {finding['score']}): {finding['reasoning']}"
+            f"(score {finding['score']}): {reasoning}{cut}"
         )
     where = f"spans: {span_ids}"
     if finding.get("trace_id") is not None:
