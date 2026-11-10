@@ -107,7 +107,7 @@ Check several traces in one run (the embedding model is loaded once, not per fil
 agent-trace-lint check traces/*.json
 ```
 
-Each report is headed by its file name, and the exit code is the worst outcome across files (`2` if any file errored, else `1` if any had findings, else `0`) -- a bad file doesn't stop the rest from being checked. With `--format json`, a single file prints the flat `{detector: [findings]}` object shown below; multiple files print one object keyed by path.
+Each report is headed by its file name, and the exit code is the worst outcome across files (`2` if any file errored, else `1` if any had findings, else `0`) -- a bad file doesn't stop the rest from being checked. A glob that matches nothing (say, `traces/*.json` when the export step produced no files) reaches the tool as literal text and exits `2` with `trace file not found: ... (if this is a glob, it matched no files)`, so an empty output directory fails the step instead of passing it. With `--format json`, a single file prints the flat `{detector: [findings]}` object shown below; multiple files print one object keyed by path.
 
 In GitHub Actions, `--format github` prints each finding as a workflow annotation (`::error file=<trace>,title=agent-trace-lint: <detector>::...`), so findings show up on the run summary and PR checks instead of being buried in the log. Exit codes are unchanged, so the step still fails the job -- add `--exit-zero` to annotate without failing:
 

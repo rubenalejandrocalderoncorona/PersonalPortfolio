@@ -207,7 +207,13 @@ def _load_trace(path):
         source = "stdin" if path == "-" else path
         return None, f"could not decode {source} as UTF-8 or UTF-16 ({exc.reason})"
     except FileNotFoundError:
-        return None, f"trace file not found: {path}"
+        message = f"trace file not found: {path}"
+        if any(char in path for char in "*?["):
+            # A shell leaves a glob that matches nothing as literal text.
+            message += " (if this is a glob, it matched no files)"
+        return None, message
+    except IsADirectoryError:
+        return None, f"{path} is a directory; pass the trace files inside it, e.g. {path.rstrip('/')}/*.json"
     except OSError as exc:
         return None, f"could not read {path}: {exc.strerror or exc}"
     except json.JSONDecodeError as exc:

@@ -810,3 +810,31 @@ def test_json_output_keeps_the_whole_reasoning(monkeypatch, tmp_path, capsys):
     assert _run_check(make_args(path, detectors="mismatch", fmt="json")) == 1
 
     assert json.loads(capsys.readouterr().out)["mismatch"][0]["reasoning"] == long_reasoning
+
+
+@pytest.mark.parametrize("pattern", ["traces/*.json", "trace?.json", "trace[12].json"])
+def test_unmatched_glob_says_it_may_have_matched_no_files(tmp_path, capsys, pattern):
+    """A shell passes a glob that matches nothing through as literal text; the
+    bare "not found" left people hunting for a file that never existed."""
+    assert _run_check(make_args(tmp_path / pattern)) == 2
+
+    err = capsys.readouterr().err
+    assert "trace file not found" in err
+    assert "(if this is a glob, it matched no files)" in err
+
+
+def test_missing_plain_path_does_not_blame_a_glob(tmp_path, capsys):
+    assert _run_check(make_args(tmp_path / "does_not_exist.json")) == 2
+
+    err = capsys.readouterr().err
+    assert "trace file not found" in err
+    assert "matched" not in err
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="Windows reports a directory as a permission error")
+def test_directory_path_suggests_passing_the_files_inside_it(tmp_path, capsys):
+    assert _run_check(make_args(tmp_path)) == 2
+
+    err = capsys.readouterr().err
+    assert f"{tmp_path} is a directory; pass the trace files inside it" in err
+    assert f"{tmp_path}/*.json" in err
