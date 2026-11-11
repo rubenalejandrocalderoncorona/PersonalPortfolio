@@ -59,13 +59,30 @@ def _trace_line(finding, indent):
     return f"{' ' * indent}trace: {finding['trace_id']}\n"
 
 
+# Tool-call arguments are an opt-in attribute in the GenAI conventions. When
+# they aren't captured every call to a tool compares equal, so the "identical
+# calls" claim behind a repetition or cycle finding is unverified.
+ARGUMENTS_NOT_RECORDED = "no arguments were recorded in the trace, so these calls may not be identical"
+
+
+def _arguments_not_recorded(detector_name, finding):
+    if detector_name == "repetition":
+        return finding["arguments"] is None
+    if detector_name == "cycle":
+        return any(arguments is None for arguments in finding["arguments"])
+    return False
+
+
 def _format_repetition(finding):
     span_ids = _format_span_ids(finding["span_ids"])
-    return (
+    text = (
         f"  [REPEAT] '{finding['tool_name']}' called {finding['repeat_count']} times in a row\n"
         f"{_trace_line(finding, 11)}"
         f"           spans: {span_ids}"
     )
+    if _arguments_not_recorded("repetition", finding):
+        text += f"\n           note: {ARGUMENTS_NOT_RECORDED}"
+    return text
 
 
 def _format_mismatch(finding):
@@ -85,12 +102,15 @@ def _format_cycle(finding):
     span_ids = _format_span_ids(finding["span_ids"])
     sequence = " -> ".join(f"'{name}'" for name in finding["tool_names"])
     total_calls = len(finding["span_ids"])
-    return (
+    text = (
         f"  [CYCLE] {sequence} repeated {finding['repeat_count']} times "
         f"({total_calls} calls)\n"
         f"{_trace_line(finding, 10)}"
         f"          spans: {span_ids}"
     )
+    if _arguments_not_recorded("cycle", finding):
+        text += f"\n          note: {ARGUMENTS_NOT_RECORDED}"
+    return text
 
 
 FORMATTERS = {
@@ -122,6 +142,8 @@ def _summarize(detector_name, finding):
             f"'{finding['tool_name']}' looks unrelated to its stated reasoning "
             f"(score {finding['score']}): {reasoning}{cut}"
         )
+    if _arguments_not_recorded(detector_name, finding):
+        text += f" -- {ARGUMENTS_NOT_RECORDED}"
     where = f"spans: {span_ids}"
     if finding.get("trace_id") is not None:
         where = f"trace: {finding['trace_id']}, {where}"

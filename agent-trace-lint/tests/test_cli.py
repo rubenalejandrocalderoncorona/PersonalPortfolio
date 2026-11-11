@@ -838,3 +838,82 @@ def test_directory_path_suggests_passing_the_files_inside_it(tmp_path, capsys):
     err = capsys.readouterr().err
     assert f"{tmp_path} is a directory; pass the trace files inside it" in err
     assert f"{tmp_path}/*.json" in err
+
+
+def _tool_trace_path(tmp_path, names, arguments):
+    """Tool spans calling `names` in order; `arguments` None means the
+    attribute was not captured at all (it is opt-in in the GenAI conventions)."""
+    spans = []
+    for i, name in enumerate(names):
+        attributes = {"gen_ai.operation.name": "execute_tool", "gen_ai.tool.name": name}
+        if arguments is not None:
+            attributes["gen_ai.tool.call.arguments"] = arguments
+        spans.append({
+            "context": {"span_id": f"s{i}", "trace_id": "t"},
+            "attributes": attributes,
+            "start_time": f"2026-01-01T00:00:0{i}Z",
+        })
+    path = tmp_path / "trace.json"
+    path.write_text(json.dumps(spans))
+    return path
+
+
+NOT_RECORDED = "no arguments were recorded in the trace, so these calls may not be identical"
+
+
+def test_repetition_without_recorded_arguments_carries_a_caveat(tmp_path, capsys):
+    path = _tool_trace_path(tmp_path, ["search"] * 3, arguments=None)
+
+    assert _run_check(make_args(path, detectors="repetition")) == 1
+
+    out = capsys.readouterr().out
+    assert "[REPEAT] 'search' called 3 times in a row" in out
+    assert f"note: {NOT_RECORDED}" in out
+
+
+@pytest.mark.parametrize("arguments", ['{"q": "paris"}', "{}"])
+def test_repetition_with_recorded_arguments_has_no_caveat(tmp_path, capsys, arguments):
+    """An explicit empty object is a recorded value, not a missing one."""
+    path = _tool_trace_path(tmp_path, ["search"] * 3, arguments=arguments)
+
+    assert _run_check(make_args(path, detectors="repetition")) == 1
+
+    assert "no arguments were recorded" not in capsys.readouterr().out
+
+
+def test_cycle_without_recorded_arguments_carries_a_caveat(tmp_path, capsys):
+    path = _tool_trace_path(tmp_path, ["a", "b"] * 3, arguments=None)
+
+    assert _run_check(make_args(path, detectors="cycle")) == 1
+
+    out = capsys.readouterr().out
+    assert "[CYCLE] 'a' -> 'b' repeated 3 times" in out
+    assert f"note: {NOT_RECORDED}" in out
+
+
+def test_cycle_with_recorded_arguments_has_no_caveat(tmp_path, capsys):
+    path = _tool_trace_path(tmp_path, ["a", "b"] * 3, arguments="{}")
+
+    assert _run_check(make_args(path, detectors="cycle")) == 1
+
+    assert "no arguments were recorded" not in capsys.readouterr().out
+
+
+def test_github_annotation_carries_the_caveat_too(tmp_path, capsys):
+    path = _tool_trace_path(tmp_path, ["search"] * 2, arguments=None)
+
+    assert _run_check(make_args(path, detectors="repetition", fmt="github")) == 1
+
+    out = capsys.readouterr().out
+    assert out.startswith("::error ")
+    assert f"called 2 times in a row -- {NOT_RECORDED} (trace: t, spans: s0, s1)" in out
+
+
+def test_json_output_is_unchanged_by_the_caveat(tmp_path, capsys):
+    path = _tool_trace_path(tmp_path, ["search"] * 2, arguments=None)
+
+    assert _run_check(make_args(path, detectors="repetition", fmt="json")) == 1
+
+    (finding,) = json.loads(capsys.readouterr().out)["repetition"]
+    assert finding["arguments"] is None
+    assert set(finding) == {"tool_name", "repeat_count", "arguments", "span_ids", "trace_id"}
