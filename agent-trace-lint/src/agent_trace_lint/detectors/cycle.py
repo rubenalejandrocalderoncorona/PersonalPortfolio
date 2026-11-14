@@ -9,14 +9,8 @@ Caveat: a legitimate polling loop (check_status, sleep, check_status,
 sleep, ...) has exactly this shape. A hit means "worth a human look", and
 `min_repeats` is the knob for how much repetition you tolerate.
 """
-import json
-
-from agent_trace_lint.detectors.repetition import _by_trace, _tool_calls_in_order
+from agent_trace_lint.detectors.repetition import _by_trace, _call_key, _tool_calls_in_order
 from agent_trace_lint.spans import extract_spans
-
-
-def _call_key(call):
-    return (call["tool_name"], json.dumps(call["arguments"], sort_keys=True, default=str))
 
 
 def _is_primitive(block):

@@ -202,3 +202,35 @@ def test_out_of_order_spans_are_sorted_whatever_the_time_notation(times):
 
     assert finding["tool_name"] == "a"
     assert finding["span_ids"] == ["s0", "s2"]
+
+
+@pytest.mark.parametrize(
+    "first, second",
+    [
+        ({"verbose": True}, {"verbose": 1}),
+        ({"deleted": False}, {"deleted": 0}),
+        ({"page": 1}, {"page": 1.0}),
+        ({"page": 1}, {"page": "1"}),
+    ],
+    ids=["true-vs-1", "false-vs-0", "1-vs-1.0", "int-vs-str"],
+)
+def test_arguments_that_are_different_json_values_are_not_a_repeat(first, second):
+    """Python's == says True == 1 and 1 == 1.0, but to the tool they are
+    different arguments, so the second call isn't a repeat of the first."""
+    trace = [
+        make_tool_span("s0", "search", first, "2026-01-01T00:00:00Z"),
+        make_tool_span("s1", "search", second, "2026-01-01T00:00:01Z"),
+    ]
+
+    assert detect_repetition(trace) == []
+
+
+def test_argument_key_order_does_not_hide_a_repeat():
+    trace = [
+        make_tool_span("s0", "search", {"q": "paris", "page": 1}, "2026-01-01T00:00:00Z"),
+        make_tool_span("s1", "search", {"page": 1, "q": "paris"}, "2026-01-01T00:00:01Z"),
+    ]
+
+    (finding,) = detect_repetition(trace)
+
+    assert finding["span_ids"] == ["s0", "s1"]

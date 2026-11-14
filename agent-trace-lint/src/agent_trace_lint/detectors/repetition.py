@@ -58,17 +58,22 @@ def _by_trace(calls):
     return list(groups.values())
 
 
+def _call_key(call):
+    """What makes two calls "the same call": the tool name and the arguments
+    compared as JSON, key order aside. Python equality would also treat
+    true as 1 and 1 as 1.0, which are different values to the tool; both
+    detectors share this so they never disagree about what a repeat is."""
+    return (call["tool_name"], json.dumps(call["arguments"], sort_keys=True, default=str))
+
+
 def _find_runs(calls, n):
     """Return (start_time, finding) for each run of >= n identical calls."""
     found = []
+    keys = [_call_key(call) for call in calls]
     i = 0
     while i < len(calls):
         j = i + 1
-        while (
-            j < len(calls)
-            and calls[j]["tool_name"] == calls[i]["tool_name"]
-            and calls[j]["arguments"] == calls[i]["arguments"]
-        ):
+        while j < len(calls) and keys[j] == keys[i]:
             j += 1
         run_length = j - i
         if run_length >= n:
@@ -87,7 +92,7 @@ def detect_repetition(trace, n: int = 2) -> list:
     """Find runs of consecutive, identical tool calls in `trace`.
 
     A "call" matches the previous one when both its tool name and its
-    (exactly, not fuzzily) parsed arguments are equal. `n` is the minimum
+    (exactly, not fuzzily) parsed arguments are equal as JSON values. `n` is the minimum
     run length that counts as a repetition -- the default of 2 flags any
     back-to-back duplicate call, since that's already a wasted round trip.
 

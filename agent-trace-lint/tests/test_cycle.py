@@ -166,3 +166,30 @@ def test_cycle_order_survives_mixed_fractional_and_whole_second_timestamps():
     assert len(findings) == 1
     assert findings[0]["tool_names"] == ["search", "read_page"]
     assert findings[0]["span_ids"] == [f"s{i}" for i in range(6)]
+
+
+@pytest.mark.parametrize(
+    "first, second",
+    [
+        ({"verbose": True}, {"verbose": 1}),
+        ({"page": 1}, {"page": 1.0}),
+        ({"q": "a", "page": 1}, {"page": 1, "q": "a"}),
+    ],
+    ids=["true-vs-1", "1-vs-1.0", "key-order"],
+)
+def test_cycle_and_repetition_agree_on_whether_two_calls_are_the_same(first, second):
+    """Both detectors share one definition of "the same call", so a pair that
+    is a repeat for one is a repeat for the other."""
+    from agent_trace_lint.detectors.repetition import detect_repetition
+
+    repeated = [make_tool_span(0, "search", first), make_tool_span(1, "search", second)]
+    # A, B, A', B, A, B -- a cycle only if A and A' count as the same call.
+    alternating = [
+        make_tool_span(i, name, args)
+        for i, (name, args) in enumerate([
+            ("search", first), ("read", {}), ("search", second), ("read", {}),
+            ("search", first), ("read", {}),
+        ])
+    ]
+
+    assert bool(detect_repetition(repeated)) == bool(detect_cycle(alternating))
