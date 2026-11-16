@@ -1,6 +1,7 @@
 import argparse
 import codecs
 import json
+import os
 import sys
 from importlib.metadata import PackageNotFoundError, version
 
@@ -243,11 +244,28 @@ def _load_trace(path):
         return None, f"invalid JSON in {source}: {exc}"
 
 
+def _unique_paths(paths):
+    """Drop repeats of the same file, keeping the first spelling and the order.
+
+    Overlapping globs (`traces/*.json traces/a.json`) or `a.json ./a.json`
+    would otherwise check a file twice and print its report twice.
+    """
+    seen = set()
+    unique = []
+    for path in paths:
+        key = os.path.realpath(path)
+        if key not in seen:
+            seen.add(key)
+            unique.append(path)
+    return unique
+
+
 def _run_check(args):
     trace_paths = args.trace_paths
     if "-" in trace_paths and len(trace_paths) > 1:
         print("error: - (stdin) can't be combined with other trace paths", file=sys.stderr)
         return 2
+    trace_paths = _unique_paths(trace_paths)
 
     detector_names = [name.strip() for name in args.detectors.split(",") if name.strip()]
     if not detector_names:

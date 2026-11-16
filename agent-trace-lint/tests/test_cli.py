@@ -311,6 +311,32 @@ def test_single_file_json_keeps_flat_shape(clean_trace_path, capsys):
     assert json.loads(capsys.readouterr().out) == {"repetition": []}
 
 
+def test_same_file_listed_twice_is_checked_and_reported_once(capsys):
+    """`a.json ./a.json`, or two globs that overlap, used to print the same
+    report twice."""
+    respelled = SAMPLE_TRACE_PATH.parent / "." / SAMPLE_TRACE_PATH.name
+    args = make_args(SAMPLE_TRACE_PATH, respelled, SAMPLE_TRACE_PATH, detectors="repetition")
+    assert _run_check(args) == 1
+    out = capsys.readouterr().out
+    assert out.count("[REPEAT]") == 1
+    assert out.count("==") == 0  # one file, so no per-file heading
+
+
+def test_duplicate_missing_path_reports_the_error_once(tmp_path, capsys):
+    missing = tmp_path / "nope.json"
+    args = make_args(missing, tmp_path / "." / "nope.json", detectors="repetition")
+    assert _run_check(args) == 2
+    assert capsys.readouterr().err.count("trace file not found") == 1
+
+
+def test_distinct_files_are_all_still_checked(clean_trace_path, capsys):
+    args = make_args(clean_trace_path, SAMPLE_TRACE_PATH, clean_trace_path, detectors="repetition")
+    assert _run_check(args) == 1
+    out = capsys.readouterr().out
+    assert f"== {clean_trace_path} ==" in out
+    assert f"== {SAMPLE_TRACE_PATH} ==" in out
+
+
 def test_stdin_cannot_be_combined_with_other_paths(clean_trace_path):
     args = make_args("-", clean_trace_path, detectors="repetition")
     assert _run_check(args) == 2
