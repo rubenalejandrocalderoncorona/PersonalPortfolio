@@ -267,7 +267,11 @@ def _run_check(args):
         return 2
     trace_paths = _unique_paths(trace_paths)
 
-    detector_names = [name.strip() for name in args.detectors.split(",") if name.strip()]
+    # dict.fromkeys drops repeats (--detectors mismatch,mismatch) but keeps order,
+    # so a detector, especially the model-backed one, never runs twice.
+    detector_names = list(
+        dict.fromkeys(name.strip() for name in args.detectors.split(",") if name.strip())
+    )
     if not detector_names:
         print("error: no detectors specified", file=sys.stderr)
         return 2

@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-from agent_trace_lint.cli import _run_check
+from agent_trace_lint.cli import DETECTORS, _run_check
 
 SAMPLE_TRACE_PATH = Path(__file__).resolve().parent.parent / "traces" / "sample_trace.json"
 
@@ -75,6 +75,19 @@ def test_invalid_json_exits_2(tmp_path):
 def test_unknown_detector_exits_2(clean_trace_path):
     args = make_args(clean_trace_path, detectors="not-a-real-detector")
     assert _run_check(args) == 2
+
+
+def test_repeated_detector_name_runs_the_detector_once(clean_trace_path, monkeypatch):
+    calls = []
+
+    def counting_detector(trace, **kwargs):
+        calls.append(1)
+        return []
+
+    monkeypatch.setitem(DETECTORS, "repetition", counting_detector)
+    args = make_args(clean_trace_path, detectors="repetition, repetition,repetition")
+    assert _run_check(args) == 0
+    assert len(calls) == 1
 
 
 def test_empty_detectors_exits_2(clean_trace_path):
