@@ -209,3 +209,13 @@ def test_integer_nanoseconds_compare_with_iso_times():
 def test_lowercase_t_and_z_are_accepted_like_their_uppercase_forms(variant):
     """RFC 3339 allows lowercase "t" and "z"."""
     assert start_time_key(variant) == start_time_key("2026-01-01T00:00:00Z") != (0, 0, 0)
+
+
+@pytest.mark.parametrize("field", ["span_id", "trace_id"])
+@pytest.mark.parametrize("bad", [["t"], {"id": "t"}])
+def test_list_or_object_ids_are_a_clear_error_not_unhashable(field, bad):
+    """A list trace_id used to surface as "unhashable type: 'list'"."""
+    good = {"context": {"span_id": "a", "trace_id": "t"}, "attributes": {}}
+    broken = {"context": {"span_id": "b", "trace_id": "t", field: bad}, "attributes": {}}
+    with pytest.raises(TraceFormatError, match=f"span 1 in the trace: context '{field}' must be a string"):
+        extract_spans([good, broken])

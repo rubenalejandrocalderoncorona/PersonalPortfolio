@@ -89,6 +89,14 @@ def _check_sdk_span_fields(spans, where):
                 raise TraceFormatError(
                     f"span {index} in {where}: '{field}' must be an object, got {type(value).__name__}"
                 )
+        # Detectors group spans by trace_id; a list or object there would
+        # otherwise fail as "unhashable type" with no hint of where.
+        for field in ("span_id", "trace_id"):
+            value = (span.get("context") or {}).get(field)
+            if isinstance(value, (list, dict)):
+                raise TraceFormatError(
+                    f"span {index} in {where}: context '{field}' must be a string, got {type(value).__name__}"
+                )
     return spans
 
 
