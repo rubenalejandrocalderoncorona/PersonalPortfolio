@@ -79,6 +79,17 @@ def _check_spans(spans, where):
     return _check_objects(spans, where, noun="span")
 
 
+def _check_ids(span, label):
+    """Detectors group spans by trace_id; a list or object there would
+    otherwise fail as "unhashable type" with no hint of where."""
+    for field in ("span_id", "trace_id"):
+        value = (span.get("context") or {}).get(field)
+        if isinstance(value, (list, dict)):
+            raise TraceFormatError(
+                f"{label}: context '{field}' must be a string, got {type(value).__name__}"
+            )
+
+
 def _check_sdk_span_fields(spans, where):
     """SDK-style spans keep attributes and context as objects; anything else
     would otherwise surface as an AttributeError deep inside a detector."""
@@ -89,14 +100,7 @@ def _check_sdk_span_fields(spans, where):
                 raise TraceFormatError(
                     f"span {index} in {where}: '{field}' must be an object, got {type(value).__name__}"
                 )
-        # Detectors group spans by trace_id; a list or object there would
-        # otherwise fail as "unhashable type" with no hint of where.
-        for field in ("span_id", "trace_id"):
-            value = (span.get("context") or {}).get(field)
-            if isinstance(value, (list, dict)):
-                raise TraceFormatError(
-                    f"span {index} in {where}: context '{field}' must be a string, got {type(value).__name__}"
-                )
+        _check_ids(span, f"span {index} in {where}")
     return spans
 
 
@@ -152,7 +156,9 @@ def _flatten_otlp(exports):
                             f"an OTLP span's 'attributes' must be a list of key/value objects, "
                             f"got {type(span['attributes']).__name__}"
                         )
-                    spans.append(_normalize_otlp_span(span))
+                    normalized = _normalize_otlp_span(span)
+                    _check_ids(normalized, f"OTLP span {len(spans)}")
+                    spans.append(normalized)
     return spans
 
 

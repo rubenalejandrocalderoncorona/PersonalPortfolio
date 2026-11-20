@@ -219,3 +219,11 @@ def test_list_or_object_ids_are_a_clear_error_not_unhashable(field, bad):
     broken = {"context": {"span_id": "b", "trace_id": "t", field: bad}, "attributes": {}}
     with pytest.raises(TraceFormatError, match=f"span 1 in the trace: context '{field}' must be a string"):
         extract_spans([good, broken])
+
+
+@pytest.mark.parametrize("field,key", [("span_id", "spanId"), ("trace_id", "traceId")])
+def test_otlp_list_ids_are_a_clear_error_not_unhashable(field, key):
+    span = {"name": "x", key: ["t"], "attributes": []}
+    export = {"resourceSpans": [{"scopeSpans": [{"spans": [span]}]}]}
+    with pytest.raises(TraceFormatError, match=f"context '{field}' must be a string, got list"):
+        extract_spans(export)
