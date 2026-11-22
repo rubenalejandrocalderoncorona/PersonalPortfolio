@@ -65,6 +65,24 @@ def test_unreadable_file_exits_2_not_traceback(tmp_path):
         path.chmod(0o644)
 
 
+@pytest.mark.parametrize("content", ["", "  \n\n", "\ufeff"])
+def test_empty_file_says_it_is_empty(tmp_path, capsys, content):
+    """An exporter that crashed before writing leaves an empty file; the old
+    message was json's "Expecting value: line 1 column 1 (char 0)"."""
+    path = tmp_path / "empty.json"
+    path.write_text(content, encoding="utf-8")
+    assert _run_check(make_args(path, detectors="repetition")) == 2
+    err = capsys.readouterr().err
+    assert f"{path} is empty" in err
+    assert "Expecting value" not in err
+
+
+def test_empty_stdin_says_stdin_is_empty(monkeypatch, capsys):
+    monkeypatch.setattr(sys, "stdin", io.StringIO(""))
+    assert _run_check(make_args("-", detectors="repetition")) == 2
+    assert "stdin is empty" in capsys.readouterr().err
+
+
 def test_invalid_json_exits_2(tmp_path):
     path = tmp_path / "bad.json"
     path.write_text("{not valid json")

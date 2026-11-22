@@ -225,7 +225,13 @@ def _read_trace_text(path):
 def _load_trace(path):
     """Return (trace, None) on success or (None, error message) on failure."""
     try:
-        return _parse_json_or_lines(_read_trace_text(path)), None
+        text = _read_trace_text(path)
+        if not text.strip():
+            # An exporter that died before writing leaves an empty file;
+            # "Expecting value: line 1 column 1" doesn't say that.
+            source = "stdin" if path == "-" else path
+            return None, f"{source} is empty; expected a JSON trace"
+        return _parse_json_or_lines(text), None
     except UnicodeDecodeError as exc:
         source = "stdin" if path == "-" else path
         return None, f"could not decode {source} as UTF-8 or UTF-16 ({exc.reason})"
