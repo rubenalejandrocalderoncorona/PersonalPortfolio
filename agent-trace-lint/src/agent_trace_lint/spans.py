@@ -58,24 +58,39 @@ def start_time_key(value):
     return (1, int(moment.timestamp()), nanos)
 
 
+def _json_type(value):
+    """The JSON name for a value's type, for error messages ("null", not "NoneType")."""
+    if value is None:
+        return "null"
+    if isinstance(value, bool):
+        return "boolean"
+    if isinstance(value, (int, float)):
+        return "number"
+    if isinstance(value, str):
+        return "string"
+    if isinstance(value, list):
+        return "array"
+    return "object"
+
+
 class TraceFormatError(ValueError):
     """The trace is valid JSON but not in a shape agent-trace-lint can read."""
 
 
 def _check_objects(items, where, noun="item"):
     if not isinstance(items, list):
-        raise TraceFormatError(f"{where} must be a list, got {type(items).__name__}")
+        raise TraceFormatError(f"{where} must be a list, got {_json_type(items)}")
     for index, item in enumerate(items):
         if not isinstance(item, dict):
             raise TraceFormatError(
-                f"{noun} {index} in {where} must be an object, got {type(item).__name__}"
+                f"{noun} {index} in {where} must be an object, got {_json_type(item)}"
             )
     return items
 
 
 def _check_spans(spans, where):
     if not isinstance(spans, list):
-        raise TraceFormatError(f"{where} must be a list of spans, got {type(spans).__name__}")
+        raise TraceFormatError(f"{where} must be a list of spans, got {_json_type(spans)}")
     return _check_objects(spans, where, noun="span")
 
 
@@ -86,7 +101,7 @@ def _check_ids(span, label):
         value = (span.get("context") or {}).get(field)
         if isinstance(value, (list, dict)):
             raise TraceFormatError(
-                f"{label}: context '{field}' must be a string, got {type(value).__name__}"
+                f"{label}: context '{field}' must be a string, got {_json_type(value)}"
             )
 
 
@@ -98,7 +113,7 @@ def _check_sdk_span_fields(spans, where):
             value = span.get(field)
             if value is not None and not isinstance(value, dict):
                 raise TraceFormatError(
-                    f"span {index} in {where}: '{field}' must be an object, got {type(value).__name__}"
+                    f"span {index} in {where}: '{field}' must be an object, got {_json_type(value)}"
                 )
         _check_ids(span, f"span {index} in {where}")
     return spans
@@ -154,7 +169,7 @@ def _flatten_otlp(exports):
                     if not isinstance(span.get("attributes") or [], list):
                         raise TraceFormatError(
                             f"an OTLP span's 'attributes' must be a list of key/value objects, "
-                            f"got {type(span['attributes']).__name__}"
+                            f"got {_json_type(span['attributes'])}"
                         )
                     normalized = _normalize_otlp_span(span)
                     _check_ids(normalized, f"OTLP span {len(spans)}")
@@ -179,5 +194,5 @@ def extract_spans(trace):
             f"(found keys: {', '.join(sorted(trace)) or 'none'})"
         )
     raise TraceFormatError(
-        f"unrecognized trace format: expected a JSON array or object, got {type(trace).__name__}"
+        f"unrecognized trace format: expected a JSON array or object, got {_json_type(trace)}"
     )

@@ -186,7 +186,7 @@ def test_sdk_span_with_null_fields_is_valid():
         ({"resourceSpans": [{"scopeSpans": ["x"]}]}, "item 0 in 'scopeSpans' must be an object"),
         (
             {"resourceSpans": [{"scopeSpans": [{"spans": [{"attributes": "x"}]}]}]},
-            "'attributes' must be a list of key/value objects, got str",
+            "'attributes' must be a list of key/value objects, got string",
         ),
     ],
 )
@@ -225,5 +225,21 @@ def test_list_or_object_ids_are_a_clear_error_not_unhashable(field, bad):
 def test_otlp_list_ids_are_a_clear_error_not_unhashable(field, key):
     span = {"name": "x", key: ["t"], "attributes": []}
     export = {"resourceSpans": [{"scopeSpans": [{"spans": [span]}]}]}
-    with pytest.raises(TraceFormatError, match=f"context '{field}' must be a string, got list"):
+    with pytest.raises(TraceFormatError, match=f"context '{field}' must be a string, got array"):
         extract_spans(export)
+
+
+@pytest.mark.parametrize("trace,described", [
+    (None, "got null"),
+    ("x", "got string"),
+    (5, "got number"),
+    (True, "got boolean"),
+])
+def test_errors_use_json_type_names_not_python_ones(trace, described):
+    with pytest.raises(TraceFormatError, match=described):
+        extract_spans(trace)
+
+
+def test_spans_that_are_null_are_called_null():
+    with pytest.raises(TraceFormatError, match="got null"):
+        extract_spans({"spans": None})
