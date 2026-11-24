@@ -974,3 +974,37 @@ def test_json_output_is_unchanged_by_the_caveat(tmp_path, capsys):
     (finding,) = json.loads(capsys.readouterr().out)["repetition"]
     assert finding["arguments"] is None
     assert set(finding) == {"tool_name", "repeat_count", "arguments", "span_ids", "trace_id"}
+
+
+def test_tool_name_with_a_newline_cannot_break_the_report_layout(tmp_path, capsys):
+    """A name like "search\nx" used to be printed raw, splitting the header
+    line in two."""
+    def span(n):
+        return {
+            "start_time": f"2026-01-01T00:00:0{n}Z",
+            "context": {"span_id": f"s{n}", "trace_id": "t"},
+            "attributes": {
+                "gen_ai.operation.name": "execute_tool",
+                "gen_ai.tool.name": "search\nx",
+                "gen_ai.tool.call.arguments": "{}",
+            },
+        }
+
+    path = tmp_path / "t.json"
+    path.write_text(json.dumps([span(1), span(2)]))
+    assert _run_check(make_args(path, detectors="repetition")) == 1
+    out = capsys.readouterr().out
+    assert "[REPEAT] 'search\\nx' called 2 times in a row" in out
+
+
+@pytest.mark.parametrize("name,shown", [
+    ("get_weather", "'get_weather'"),
+    ("it's", "'it's'"),
+    ("café", "'café'"),
+    ("a\nb", "'a\\nb'"),
+    ("a\tb", "'a\\tb'"),
+])
+def test_quote_keeps_normal_names_and_escapes_control_characters(name, shown):
+    from agent_trace_lint.cli import _quote
+
+    assert _quote(name) == shown

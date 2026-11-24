@@ -44,6 +44,13 @@ def _format_span_ids(span_ids):
 MAX_REASONING_CHARS = 200
 
 
+def _quote(name):
+    """A tool name in single quotes. A name with a newline or other control
+    character is shown escaped, so it can't break the report's layout."""
+    text = str(name)
+    return f"'{text}'" if text.isprintable() else repr(text)
+
+
 def _shorten_reasoning(text):
     """(excerpt, suffix): the reasoning cut to MAX_REASONING_CHARS, and a
     marker saying how much was left out ("" if nothing was)."""
@@ -77,7 +84,7 @@ def _arguments_not_recorded(detector_name, finding):
 def _format_repetition(finding):
     span_ids = _format_span_ids(finding["span_ids"])
     text = (
-        f"  [REPEAT] '{finding['tool_name']}' called {finding['repeat_count']} times in a row\n"
+        f"  [REPEAT] {_quote(finding['tool_name'])} called {finding['repeat_count']} times in a row\n"
         f"{_trace_line(finding, 11)}"
         f"           spans: {span_ids}"
     )
@@ -90,7 +97,7 @@ def _format_mismatch(finding):
     span_ids = _format_span_ids(finding["span_ids"])
     reasoning, cut = _shorten_reasoning(finding["reasoning"])
     return (
-        f"  [MISMATCH] '{finding['tool_name']}' looks unrelated to its stated reasoning "
+        f"  [MISMATCH] {_quote(finding['tool_name'])} looks unrelated to its stated reasoning "
         f"(score: {finding['score']})\n"
         f"           reasoning: {reasoning!r}{cut}\n"
         f"{_trace_line(finding, 11)}"
@@ -101,7 +108,7 @@ def _format_mismatch(finding):
 
 def _format_cycle(finding):
     span_ids = _format_span_ids(finding["span_ids"])
-    sequence = " -> ".join(f"'{name}'" for name in finding["tool_names"])
+    sequence = " -> ".join(_quote(name) for name in finding["tool_names"])
     total_calls = len(finding["span_ids"])
     text = (
         f"  [CYCLE] {sequence} repeated {finding['repeat_count']} times "
@@ -133,14 +140,14 @@ def _summarize(detector_name, finding):
     """One line describing a finding, for output with no room for multiple lines."""
     span_ids = _format_span_ids(finding["span_ids"])
     if detector_name == "repetition":
-        text = f"'{finding['tool_name']}' called {finding['repeat_count']} times in a row"
+        text = f"{_quote(finding['tool_name'])} called {finding['repeat_count']} times in a row"
     elif detector_name == "cycle":
-        sequence = " -> ".join(f"'{name}'" for name in finding["tool_names"])
+        sequence = " -> ".join(_quote(name) for name in finding["tool_names"])
         text = f"{sequence} repeated {finding['repeat_count']} times ({len(finding['span_ids'])} calls)"
     else:
         reasoning, cut = _shorten_reasoning(finding["reasoning"])
         text = (
-            f"'{finding['tool_name']}' looks unrelated to its stated reasoning "
+            f"{_quote(finding['tool_name'])} looks unrelated to its stated reasoning "
             f"(score {finding['score']}): {reasoning}{cut}"
         )
     if _arguments_not_recorded(detector_name, finding):
