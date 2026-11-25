@@ -1,3 +1,4 @@
+import json
 import pytest
 
 from agent_trace_lint.spans import TraceFormatError, extract_spans, start_time_key
@@ -243,3 +244,37 @@ def test_errors_use_json_type_names_not_python_ones(trace, described):
 def test_spans_that_are_null_are_called_null():
     with pytest.raises(TraceFormatError, match="got null"):
         extract_spans({"spans": None})
+
+
+def _tool_span(n, trace_id="t"):
+    return {
+        "start_time": f"2026-01-01T00:00:0{n}Z",
+        "context": {"span_id": f"s{n}", "trace_id": trace_id},
+        "attributes": {"gen_ai.operation.name": "execute_tool", "gen_ai.tool.name": "a"},
+    }
+
+
+def test_list_of_spans_objects_is_flattened_not_read_as_empty_spans():
+    """A .jsonl of {"spans": [...]} lines parses as a list of objects with a
+    'spans' key. Treated as spans, they have no attributes and the trace
+    looked clean."""
+    lines = [{"spans": [_tool_span(1)]}, {"spans": [_tool_span(2)]}]
+    spans = extract_spans(lines)
+    assert [s["context"]["span_id"] for s in spans] == ["s1", "s2"]
+
+
+def test_jsonl_spans_exports_are_checked_end_to_end(tmp_path):
+    from agent_trace_lint.detectors.repetition import detect_repetition
+
+    path = tmp_path / "t.jsonl"
+    path.write_text("\n".join(json.dumps({"spans": [_tool_span(n)]}) for n in (1, 2)))
+    from agent_trace_lint.cli import _load_trace
+
+    trace, error = _load_trace(str(path))
+    assert error is None
+    assert len(detect_repetition(trace)) == 1
+
+
+def test_bad_spans_inside_a_jsonl_export_still_error():
+    with pytest.raises(TraceFormatError, match="'spans' must be a list"):
+        extract_spans([{"spans": [_tool_span(1)]}, {"spans": None}])
