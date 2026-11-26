@@ -1008,3 +1008,30 @@ def test_quote_keeps_normal_names_and_escapes_control_characters(name, shown):
     from agent_trace_lint.cli import _quote
 
     assert _quote(name) == shown
+
+
+def test_spans_without_genai_attributes_warn_that_nothing_was_checked(tmp_path, capsys):
+    """HTTP/database spans from an app with GenAI instrumentation off used to
+    pass with a bare "no issues detected"."""
+    path = tmp_path / "http.json"
+    path.write_text(json.dumps([
+        {"name": "GET /", "attributes": {"http.method": "GET"}},
+        {"name": "db", "attributes": None},
+    ]))
+    assert _run_check(make_args(path, detectors="repetition")) == 0
+    err = capsys.readouterr().err
+    assert f"{path} has 2 span(s) but none carry gen_ai.* attributes" in err
+
+
+def test_spans_with_genai_attributes_do_not_warn(capsys):
+    assert _run_check(make_args(SAMPLE_TRACE_PATH, detectors="repetition")) == 1
+    assert "gen_ai" not in capsys.readouterr().err
+
+
+def test_no_genai_warning_leaves_stdout_and_json_alone(tmp_path, capsys):
+    path = tmp_path / "http.json"
+    path.write_text(json.dumps([{"name": "GET /", "attributes": {"http.method": "GET"}}]))
+    _run_check(make_args(path, detectors="repetition", fmt="json"))
+    captured = capsys.readouterr()
+    assert json.loads(captured.out) == {"repetition": []}
+    assert "gen_ai" in captured.err

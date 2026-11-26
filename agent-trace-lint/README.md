@@ -167,7 +167,7 @@ Trace files are read as UTF-8 (a BOM is fine) or UTF-16 -- the latter is what Po
 
 A recognized format with a malformed part -- a span whose `attributes` is a string, say -- also exits `2`, with an error naming the span and field at fault.
 
-A file that parses but holds no spans at all (`[]`, an empty `resourceSpans`) is reported clean with exit `0`, plus a `warning: no spans found` line on stderr -- so an exporter that silently wrote nothing doesn't pass for a healthy agent. stdout (including `--format json`) is unchanged.
+A file that parses but holds no spans at all (`[]`, an empty `resourceSpans`) is reported clean with exit `0`, plus a `warning: no spans found` line on stderr -- so an exporter that silently wrote nothing doesn't pass for a healthy agent. stdout (including `--format json`) is unchanged. The same warning appears when spans exist but none carry any `gen_ai.*` attribute (say, only HTTP and database spans because GenAI instrumentation is off): there was nothing for the detectors to look at, and `no issues detected` would otherwise read as a pass. The exit code is unchanged.
 
 Anything else -- a JSON object with none of those keys, say -- exits `2` with an `unrecognized trace format` error naming the keys it found, rather than reporting a clean trace it never actually read.
 

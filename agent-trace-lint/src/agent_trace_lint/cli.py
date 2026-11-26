@@ -273,6 +273,14 @@ def _unique_paths(paths):
     return unique
 
 
+def _has_genai_attributes(spans):
+    return any(
+        str(key).startswith("gen_ai.")
+        for span in spans
+        for key in (span.get("attributes") or {})
+    )
+
+
 def _run_check(args):
     trace_paths = args.trace_paths
     if "-" in trace_paths and len(trace_paths) > 1:
@@ -346,10 +354,19 @@ def _run_check(args):
             exit_code = 2
             continue
 
-        if not extract_spans(trace):
+        spans = extract_spans(trace)
+        if not spans:
             # An empty export (exporter wrote nothing, wrong file) looks the
             # same as a healthy agent, so say that nothing was checked.
             print(f"warning: no spans found in {source}; nothing was checked", file=sys.stderr)
+        elif not _has_genai_attributes(spans):
+            # Ordinary HTTP/database spans from an app without GenAI
+            # instrumentation would also report "no issues".
+            print(
+                f"warning: {source} has {len(spans)} span(s) but none carry gen_ai.* "
+                "attributes, so there was nothing to check (is GenAI instrumentation on?)",
+                file=sys.stderr,
+            )
 
         all_results[path] = results
         if any(results.values()):
