@@ -182,9 +182,10 @@ def extract_spans(trace):
         # A list of OTLP exports, e.g. a Collector file-exporter .jsonl file
         if trace and all(isinstance(e, dict) and "resourceSpans" in e for e in trace):
             return _flatten_otlp(trace)
-        # Newline-delimited {"spans": [...]} exports, one per line. Read as a
-        # list of spans these would be empty objects, and pass as clean.
-        if trace and all(isinstance(e, dict) and "spans" in e for e in trace):
+        # Newline-delimited exports, one per line, in either format (or a mix
+        # of both). Read as a list of spans these would be empty objects, and
+        # pass as clean.
+        if trace and all(isinstance(e, dict) and ("spans" in e or "resourceSpans" in e) for e in trace):
             return [span for export in trace for span in extract_spans(export)]
         return _check_sdk_span_fields(_check_spans(trace, "the trace"), "the trace")
     if isinstance(trace, dict):

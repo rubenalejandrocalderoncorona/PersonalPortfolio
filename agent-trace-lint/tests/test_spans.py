@@ -278,3 +278,13 @@ def test_jsonl_spans_exports_are_checked_end_to_end(tmp_path):
 def test_bad_spans_inside_a_jsonl_export_still_error():
     with pytest.raises(TraceFormatError, match="'spans' must be a list"):
         extract_spans([{"spans": [_tool_span(1)]}, {"spans": None}])
+
+
+def test_jsonl_mixing_sdk_and_otlp_exports_reads_both():
+    otlp_span = {
+        "traceId": "t", "spanId": "o1", "startTimeUnixNano": "1767225603000000000",
+        "attributes": [{"key": "gen_ai.tool.name", "value": {"stringValue": "a"}}],
+    }
+    otlp = {"resourceSpans": [{"scopeSpans": [{"spans": [otlp_span]}]}]}
+    spans = extract_spans([{"spans": [_tool_span(1)]}, otlp, {"spans": [_tool_span(2)]}])
+    assert [s["context"]["span_id"] for s in spans] == ["s1", "o1", "s2"]
